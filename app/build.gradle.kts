@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "mediacapture.io"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "mediacapture.io"
