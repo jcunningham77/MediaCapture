@@ -5,10 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,7 +37,16 @@ fun ConstraintLayoutContent() {
             .fillMaxSize()
             .padding(20.dp)
     ) {
-        val (flipCameraButton, recordButton) = createRefs()
+        val (previewSurface, flipCameraButton, recordButton) = createRefs()
+
+        val bottomGuideline = createGuidelineFromBottom(.20f)
+
+        PreviewSurface(modifier = Modifier.constrainAs(previewSurface) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(bottomGuideline)
+        }, context = null)
 
         FlipCameraButton(
             Modifier
@@ -61,17 +67,15 @@ fun ConstraintLayoutContent() {
 
                 }
                 .size(100.dp, 100.dp))
-
     }
 
 }
 
 
 @Composable
-fun PreviewSurface(context: Context) {
-
-    Row(Modifier.height(500.dp)) {
-        CircularProgressIndicator(modifier = Modifier.fillMaxHeight())
+fun PreviewSurface(modifier: Modifier, context: Context?) {
+    if (context == null) {
+        CircularProgressIndicator(modifier.size(200.dp))
     }
 }
 

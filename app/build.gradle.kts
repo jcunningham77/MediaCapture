@@ -74,4 +74,6 @@ dependencies {
     implementation("androidx.camera:camera-video:1.3.0")
     implementation("androidx.camera:camera-view:1.3.0")
     implementation("androidx.camera:camera-extensions:1.3.0")
+
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
 }
