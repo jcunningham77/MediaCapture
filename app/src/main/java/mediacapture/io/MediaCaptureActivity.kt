@@ -27,6 +27,8 @@ class MediaCaptureActivity : ComponentActivity() {
 
             }
         }
+
+//        viewModel.viewState
     }
 }
 

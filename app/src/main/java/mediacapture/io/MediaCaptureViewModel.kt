@@ -7,7 +7,7 @@ import io.reactivex.subjects.PublishSubject
 
 class MediaCaptureViewModel : ViewModel() {
 
-    private val viewStateSubject = PublishSubject.create<ViewState>()
+    private val viewStateSubject = PublishSubject.create<ViewState>().startWith(PendingInitialization)
 
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
