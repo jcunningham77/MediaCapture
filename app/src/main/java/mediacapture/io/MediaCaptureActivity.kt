@@ -2,6 +2,7 @@ package mediacapture.io
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -14,11 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.toLiveData
+import io.reactivex.BackpressureStrategy
+
+
 import mediacapture.io.ui.theme.MediaCaptureTheme
 
 class MediaCaptureActivity : ComponentActivity() {
-
-    lateinit var viewModel: MediaCaptureViewModel
+    private val TAG = this.javaClass.simpleName
+    private var viewModel = MediaCaptureViewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -28,7 +33,11 @@ class MediaCaptureActivity : ComponentActivity() {
             }
         }
 
-//        viewModel.viewState
+        val publisher = viewModel.viewState.toFlowable(BackpressureStrategy.LATEST)
+
+        publisher.toLiveData().observe(this) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: $it")
+        }
     }
 }
 
