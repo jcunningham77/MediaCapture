@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,7 +27,7 @@ class MediaCaptureActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MediaCaptureTheme {
-                ConstraintLayoutContent()
+                ConstraintLayoutContent(MediaCaptureViewModel.PendingInitialization)
 
             }
         }
@@ -39,12 +40,17 @@ class MediaCaptureActivity : ComponentActivity() {
 
         viewModel.viewState.observe(this) {
             Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: emit = $it")
+            setContent {
+                ConstraintLayoutContent(it)
+            }
         }
     }
 }
 
 @Composable
-fun ConstraintLayoutContent() {
+fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState) {
+
+    Log.i("ConstraintLayoutContent", "JEFFREYCUNNINGHAM: ConstraintLayoutContent: init $viewState")
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -54,12 +60,23 @@ fun ConstraintLayoutContent() {
 
         val bottomGuideline = createGuidelineFromBottom(.20f)
 
-        PreviewSurface(modifier = Modifier.constrainAs(previewSurface) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(bottomGuideline)
-        }, context = null)
+        if (viewState is MediaCaptureViewModel.PendingInitialization) {
+            PreviewSurface(modifier = Modifier.constrainAs(previewSurface) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(bottomGuideline)
+            }, context = null)
+        } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
+            Text("Init complete", modifier = Modifier.constrainAs(previewSurface) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(bottomGuideline)
+            })
+        }
+
+
 
         FlipCameraButton(
             Modifier
