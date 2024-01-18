@@ -15,16 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.toLiveData
-import io.reactivex.BackpressureStrategy
-
+import mediacapture.io.livedata.observe
 import mediacapture.io.ui.theme.MediaCaptureTheme
 
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
-    private lateinit var viewStateLiveData2_6_2: LiveData<MediaCaptureViewModel.ViewState>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -35,23 +32,14 @@ class MediaCaptureActivity : ComponentActivity() {
         }
 
         viewModel = MediaCaptureViewModel(this.application)
-
-        val viewStatePublisher = viewModel.viewState.toFlowable(BackpressureStrategy.BUFFER)
-
-        viewStateLiveData2_6_2 = viewStatePublisher.toLiveData()
-
     }
 
     override fun onResume() {
         super.onResume()
 
-        viewStateLiveData2_6_2.observe(this) {
-            Log.i(
-                TAG,
-                "JEFFREYCUNNINGHAM: onCreate:  publisher.toLiveData() on Next = ${it.javaClass.simpleName}"
-            )
+        viewModel.viewState.observe(this) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: emit = $it")
         }
-
     }
 }
 
