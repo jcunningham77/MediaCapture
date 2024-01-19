@@ -32,10 +32,10 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     private val TAG = this.javaClass.simpleName
 
-    private val context = getApplication<Application>()
+
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val listenableFuture: ListenableFuture<ProcessCameraProvider> =
-        ProcessCameraProvider.getInstance(context)
+        ProcessCameraProvider.getInstance(application.applicationContext)
 
     @SuppressLint("RestrictedApi")
     private val processCameraProviderSingle = Single.create<ProcessCameraProvider> {
