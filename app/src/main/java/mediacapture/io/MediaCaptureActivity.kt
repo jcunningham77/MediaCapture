@@ -1,7 +1,10 @@
 package mediacapture.io
 
+import android.app.Activity
+import android.content.ContentValues
 import android.content.Context
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,9 +12,12 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
+import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.PendingRecording
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -19,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -35,11 +40,19 @@ class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
 
+    private var recording: Recording? = null
+    private var pendingRecording: PendingRecording? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MediaCaptureTheme {
-                ConstraintLayoutContent(MediaCaptureViewModel.PendingInitialization, this.baseContext)
+                ConstraintLayoutContent(
+                    MediaCaptureViewModel.PendingInitialization,
+                    this.baseContext,
+                    this,
+                    pendingRecording,
+                )
 
             }
         }
@@ -53,14 +66,14 @@ class MediaCaptureActivity : ComponentActivity() {
         viewModel.viewState.observe(this) {
             Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: emit = $it")
             setContent {
-                ConstraintLayoutContent(it, this.baseContext)
+                ConstraintLayoutContent(it, this.baseContext, this, pendingRecording)
             }
         }
     }
 }
 
 @Composable
-fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context: Context) {
+fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context: Context, activity: Activity, pendingRecording: PendingRecording?) {
 
     Log.i("ConstraintLayoutContent", "JEFFREYCUNNINGHAM: ConstraintLayoutContent: init $viewState")
     ConstraintLayout(
@@ -89,7 +102,7 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context:
 //                bottom.linkTo(bottomGuideline)
 //            })
 
-            CameraPreview(viewState.processCameraProvider, previewModifier, context)
+            CameraPreview(viewState.processCameraProvider, previewModifier, context, pendingRecording, activity)
         }
 
 
@@ -118,32 +131,55 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context:
 }
 
 @Composable
-fun CameraPreview(cameraProvider:ProcessCameraProvider, modifier: Modifier, context: Context) {
+fun CameraPreview(cameraProvider: ProcessCameraProvider, modifier: Modifier, context: Context, pendingRecording: PendingRecording?, activity: Activity) {
     val lifecycleOwner = LocalLifecycleOwner.current
     AndroidView(modifier = modifier,
         factory = { context ->
             PreviewView(context).apply {
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 post {
-                    bindPreview(cameraProvider, lifecycleOwner, this)
+                    bindPreview(cameraProvider, lifecycleOwner, this, pendingRecording, context, activity)
                 }
             }
         })
 
 }
 
-private fun bindPreview(cameraProvider: ProcessCameraProvider, lifecycleOwner: LifecycleOwner, previewView: PreviewView) {
+private fun bindPreview(
+    cameraProvider: ProcessCameraProvider,
+    lifecycleOwner: LifecycleOwner,
+    previewView: PreviewView,
+    pendingRecording: PendingRecording?,
+    context: Context,
+    activity: Activity,
+) {
     val preview: Preview = Preview.Builder().build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
 
-    val selector = QualitySelector.from(Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
-        Quality.SD))
+    val selector = QualitySelector.from(
+        Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
+            Quality.SD
+        )
+    )
     val recorder = Recorder.Builder().setQualitySelector(selector).build()
     val videoCapture = VideoCapture.withOutput(recorder)
-    var camera = cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_FRONT_CAMERA, videoCapture, preview)
+    var camera = cameraProvider.bindToLifecycle(
+        lifecycleOwner,
+        CameraSelector.DEFAULT_FRONT_CAMERA,
+        videoCapture,
+        preview
+    )
 
+    pendingRecording = videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity)).withAudioEnabled()
 
+}
 
+private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME,"CameraX-VideoCapture-2")
+        put(MediaStore.MediaColumns.MIME_TYPE,"video/mp4")
+    }
+    return MediaStoreOutputOptions.Builder(activity.application.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI).setContentValues(contentValues).build()
 }
 
 
