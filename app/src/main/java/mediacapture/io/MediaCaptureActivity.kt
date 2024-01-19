@@ -76,7 +76,12 @@ class MediaCaptureActivity : ComponentActivity() {
 }
 
 @Composable
-fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context: Context, activity: Activity, pendingRecording: PendingRecording?) {
+fun ConstraintLayoutContent(
+    viewState: MediaCaptureViewModel.ViewState,
+    context: Context,
+    activity: ComponentActivity,
+    pendingRecording: PendingRecording?
+) {
 
     Log.i("ConstraintLayoutContent", "JEFFREYCUNNINGHAM: ConstraintLayoutContent: init $viewState")
     ConstraintLayout(
@@ -105,7 +110,13 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context:
 //                bottom.linkTo(bottomGuideline)
 //            })
 
-            CameraPreview(viewState.processCameraProvider, previewModifier, context, pendingRecording, activity)
+            CameraPreview(
+                viewState.processCameraProvider,
+                previewModifier,
+                context,
+                pendingRecording,
+                activity
+            )
         }
 
 
@@ -134,14 +145,30 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context:
 }
 
 @Composable
-fun CameraPreview(cameraProvider: ProcessCameraProvider, modifier: Modifier, context: Context, pendingRecording: PendingRecording?, activity: Activity) {
+fun CameraPreview(
+    cameraProvider: ProcessCameraProvider,
+    modifier: Modifier,
+    context: Context,
+    pendingRecording: PendingRecording?,
+    activity: ComponentActivity
+) {
     val lifecycleOwner = LocalLifecycleOwner.current
     AndroidView(modifier = modifier,
         factory = { context ->
             PreviewView(context).apply {
+                Log.i("CameraPreview", "JEFFREYCUNNINGHAM: CameraPreview: apply1")
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+
                 post {
-                    val pendingRecording = bindPreview(cameraProvider, lifecycleOwner, this, pendingRecording, context, activity)
+                    Log.i("CameraPreview", "JEFFREYCUNNINGHAM: CameraPreview: apply2")
+                    val pendingRecording = bindPreview(
+                        cameraProvider,
+                        lifecycleOwner,
+                        this,
+                        pendingRecording,
+                        context,
+                        activity
+                    )
                 }
             }
         })
@@ -154,8 +181,13 @@ private fun bindPreview(
     previewView: PreviewView,
     pendingRecording: PendingRecording?,
     context: Context,
-    activity: Activity,
-) : PendingRecording? {
+    activity: ComponentActivity,
+): PendingRecording? {
+
+    Log.d(
+        "bindPreview",
+        "bindPreview() called with: cameraProvider = $cameraProvider, lifecycleOwner = $lifecycleOwner, previewView = $previewView, pendingRecording = $pendingRecording, context = $context, activity = $activity"
+    )
     val preview: Preview = Preview.Builder().build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
 
@@ -167,14 +199,14 @@ private fun bindPreview(
     val recorder = Recorder.Builder().setQualitySelector(selector).build()
     val videoCapture = VideoCapture.withOutput(recorder)
     var camera = cameraProvider.bindToLifecycle(
-        lifecycleOwner,
+        activity,
         CameraSelector.DEFAULT_FRONT_CAMERA,
         videoCapture,
         preview
     )
 
     // todo handle the permissions more gracefully
-    return if (ActivityCompat.checkSelfPermission(
+    if (ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.RECORD_AUDIO
         ) != PackageManager.PERMISSION_GRANTED
@@ -185,20 +217,24 @@ private fun bindPreview(
             1
         )
 
-        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity)).withAudioEnabled()
-    } else {
-        null
     }
+
+    Log.i("bindPreview", "JEFFREYCUNNINGHAM: bindPreview: about to call prepare recording")
+    return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
+        .withAudioEnabled()
 
 
 }
 
 private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
     val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME,"CameraX-VideoCapture-2")
-        put(MediaStore.MediaColumns.MIME_TYPE,"video/mp4")
+        put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+        put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
     }
-    return MediaStoreOutputOptions.Builder(activity.application.contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI).setContentValues(contentValues).build()
+    return MediaStoreOutputOptions.Builder(
+        activity.application.contentResolver,
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    ).setContentValues(contentValues).build()
 }
 
 
