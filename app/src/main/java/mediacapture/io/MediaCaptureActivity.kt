@@ -1,8 +1,10 @@
 package mediacapture.io
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -32,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.theme.MediaCaptureTheme
@@ -138,7 +141,7 @@ fun CameraPreview(cameraProvider: ProcessCameraProvider, modifier: Modifier, con
             PreviewView(context).apply {
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                 post {
-                    bindPreview(cameraProvider, lifecycleOwner, this, pendingRecording, context, activity)
+                    val pendingRecording = bindPreview(cameraProvider, lifecycleOwner, this, pendingRecording, context, activity)
                 }
             }
         })
@@ -152,7 +155,7 @@ private fun bindPreview(
     pendingRecording: PendingRecording?,
     context: Context,
     activity: Activity,
-) {
+) : PendingRecording? {
     val preview: Preview = Preview.Builder().build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
 
@@ -170,7 +173,23 @@ private fun bindPreview(
         preview
     )
 
-    pendingRecording = videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity)).withAudioEnabled()
+    // todo handle the permissions more gracefully
+    return if (ActivityCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        ActivityCompat.requestPermissions(
+            (context as Activity?)!!,
+            arrayOf(Manifest.permission.RECORD_AUDIO),
+            1
+        )
+
+        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity)).withAudioEnabled()
+    } else {
+        null
+    }
+
 
 }
 
