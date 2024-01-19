@@ -19,7 +19,6 @@ import androidx.camera.video.PendingRecording
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
@@ -29,13 +28,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.theme.MediaCaptureTheme
 
@@ -43,8 +40,6 @@ class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
 
-    private var recording: Recording? = null
-    private var pendingRecording: PendingRecording? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +49,6 @@ class MediaCaptureActivity : ComponentActivity() {
                     MediaCaptureViewModel.PendingInitialization,
                     this.baseContext,
                     this,
-                    pendingRecording,
                 )
 
             }
@@ -67,9 +61,8 @@ class MediaCaptureActivity : ComponentActivity() {
         super.onResume()
 
         viewModel.viewState.observe(this) {
-            Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: emit = $it")
             setContent {
-                ConstraintLayoutContent(it, this.baseContext, this, pendingRecording)
+                ConstraintLayoutContent(it, this.baseContext, this)
             }
         }
     }
@@ -80,10 +73,7 @@ fun ConstraintLayoutContent(
     viewState: MediaCaptureViewModel.ViewState,
     context: Context,
     activity: ComponentActivity,
-    pendingRecording: PendingRecording?
 ) {
-
-    Log.i("ConstraintLayoutContent", "JEFFREYCUNNINGHAM: ConstraintLayoutContent: init $viewState")
     ConstraintLayout(
         modifier = Modifier
             .fillMaxSize()
@@ -103,18 +93,10 @@ fun ConstraintLayoutContent(
         if (viewState is MediaCaptureViewModel.PendingInitialization) {
             LoadingIndicator(modifier = previewModifier, context = null)
         } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
-//            Text("Init complete", modifier = Modifier.constrainAs(previewSurface) {
-//                top.linkTo(parent.top)
-//                start.linkTo(parent.start)
-//                end.linkTo(parent.end)
-//                bottom.linkTo(bottomGuideline)
-//            })
 
             CameraPreview(
                 viewState.processCameraProvider,
                 previewModifier,
-                context,
-                pendingRecording,
                 activity
             )
         }
@@ -148,26 +130,28 @@ fun ConstraintLayoutContent(
 fun CameraPreview(
     cameraProvider: ProcessCameraProvider,
     modifier: Modifier,
-    context: Context,
-    pendingRecording: PendingRecording?,
     activity: ComponentActivity
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val TAG = "CameraPreview"
+
     AndroidView(modifier = modifier,
         factory = { context ->
             PreviewView(context).apply {
-                Log.i("CameraPreview", "JEFFREYCUNNINGHAM: CameraPreview: apply1")
+
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
 
                 post {
-                    Log.i("CameraPreview", "JEFFREYCUNNINGHAM: CameraPreview: apply2")
+
                     val pendingRecording = bindPreview(
                         cameraProvider,
-                        lifecycleOwner,
                         this,
-                        pendingRecording,
                         context,
                         activity
+                    )
+
+                    Log.i(
+                        TAG,
+                        "JEFFREYCUNNINGHAM: CameraPreview: STEP3: pendingRecoding = $pendingRecording"
                     )
                 }
             }
@@ -177,19 +161,19 @@ fun CameraPreview(
 
 private fun bindPreview(
     cameraProvider: ProcessCameraProvider,
-    lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
-    pendingRecording: PendingRecording?,
     context: Context,
     activity: ComponentActivity,
 ): PendingRecording? {
 
-    Log.d(
-        "bindPreview",
-        "bindPreview() called with: cameraProvider = $cameraProvider, lifecycleOwner = $lifecycleOwner, previewView = $previewView, pendingRecording = $pendingRecording, context = $context, activity = $activity"
-    )
+    val TAG = "bindPreview"
+
     val preview: Preview = Preview.Builder().build()
     preview.setSurfaceProvider(previewView.surfaceProvider)
+    Log.i(
+        TAG,
+        "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
+    )
 
     val selector = QualitySelector.from(
         Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
@@ -198,11 +182,16 @@ private fun bindPreview(
     )
     val recorder = Recorder.Builder().setQualitySelector(selector).build()
     val videoCapture = VideoCapture.withOutput(recorder)
-    var camera = cameraProvider.bindToLifecycle(
+    val camera = cameraProvider.bindToLifecycle(
         activity,
         CameraSelector.DEFAULT_FRONT_CAMERA,
         videoCapture,
         preview
+    )
+
+    Log.i(
+        TAG,
+        "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
     )
 
     // todo handle the permissions more gracefully
@@ -219,11 +208,8 @@ private fun bindPreview(
 
     }
 
-    Log.i("bindPreview", "JEFFREYCUNNINGHAM: bindPreview: about to call prepare recording")
     return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
         .withAudioEnabled()
-
-
 }
 
 private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {

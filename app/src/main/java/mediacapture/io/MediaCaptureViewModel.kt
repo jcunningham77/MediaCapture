@@ -39,18 +39,18 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     @SuppressLint("RestrictedApi")
     private val processCameraProviderSingle = Single.create<ProcessCameraProvider> {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: 1: ")
+
         Futures.addCallback(
             listenableFuture,
 
             object : FutureCallback<ProcessCameraProvider> {
                 override fun onSuccess(result: ProcessCameraProvider?) {
-                    Log.i(TAG, "JEFFREYCUNNINGHAM: 2: ")
+                    Log.i(TAG, "JEFFREYCUNNINGHAM: onSuccess: $result")
                     it.onSuccess(result!!)
                 }
 
                 override fun onFailure(t: Throwable) {
-                    Log.i(TAG, "JEFFREYCUNNINGHAM: onFailure: 3 error = $t")
+                    Log.i(TAG, "JEFFREYCUNNINGHAM: onFailure: error = $t")
                     it.onError(t)
                 }
 
@@ -67,21 +67,9 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 // we should really be using startsWith() on viewStateSubject to emit a starting value, but that doesn't seem to work
                 // with reactivestreams:2.6.2 (or the ComponentActivity lifecycle)
                 if (it == 0L) {
-                    Log.i(
-                        TAG,
-                        "JEFFREYCUNNINGHAM: pending2EmissionObservable: emission 1, sending PendingInitialization2"
-                    )
                     viewStateSubject.onNext(PendingInitialization)
                 } else if (it == 1L) {
-                    Log.i(
-                        TAG,
-                        "JEFFREYCUNNINGHAM: pending2EmissionObservable: emission 2, subscribing to  processCameraProviderSingle"
-                    )
                     disposables.add(processCameraProviderSingle.subscribe { processCameraProvider ->
-                        Log.i(
-                            TAG,
-                            "JEFFREYCUNNINGHAM: :processCameraProvider = $processCameraProvider "
-                        )
                         viewStateSubject.onNext(InitializationComplete(processCameraProvider))
                     })
                 }
