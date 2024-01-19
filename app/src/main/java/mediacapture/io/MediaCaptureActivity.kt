@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -22,12 +23,14 @@ import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -55,6 +58,10 @@ class MediaCaptureActivity : ComponentActivity() {
         }
 
         viewModel = MediaCaptureViewModel(this.application)
+
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
+            Log.d("-- CAMERA PERMISSION --", permission.toString())
+        }.launch(Manifest.permission.CAMERA)
     }
 
     override fun onResume() {
@@ -137,6 +144,7 @@ fun CameraPreview(
     AndroidView(modifier = modifier,
         factory = { context ->
             PreviewView(context).apply {
+
 
                 implementationMode = PreviewView.ImplementationMode.COMPATIBLE
 
