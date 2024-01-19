@@ -5,6 +5,15 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FallbackStrategy
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,9 +22,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.theme.MediaCaptureTheme
 
@@ -27,7 +39,7 @@ class MediaCaptureActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MediaCaptureTheme {
-                ConstraintLayoutContent(MediaCaptureViewModel.PendingInitialization)
+                ConstraintLayoutContent(MediaCaptureViewModel.PendingInitialization, this.baseContext)
 
             }
         }
@@ -41,14 +53,14 @@ class MediaCaptureActivity : ComponentActivity() {
         viewModel.viewState.observe(this) {
             Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: emit = $it")
             setContent {
-                ConstraintLayoutContent(it)
+                ConstraintLayoutContent(it, this.baseContext)
             }
         }
     }
 }
 
 @Composable
-fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState) {
+fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState, context: Context) {
 
     Log.i("ConstraintLayoutContent", "JEFFREYCUNNINGHAM: ConstraintLayoutContent: init $viewState")
     ConstraintLayout(
@@ -60,20 +72,24 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState) {
 
         val bottomGuideline = createGuidelineFromBottom(.20f)
 
+        val previewModifier = Modifier.constrainAs(previewSurface) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(bottomGuideline)
+        }
+
         if (viewState is MediaCaptureViewModel.PendingInitialization) {
-            PreviewSurface(modifier = Modifier.constrainAs(previewSurface) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(bottomGuideline)
-            }, context = null)
+            LoadingIndicator(modifier = previewModifier, context = null)
         } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
-            Text("Init complete", modifier = Modifier.constrainAs(previewSurface) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(bottomGuideline)
-            })
+//            Text("Init complete", modifier = Modifier.constrainAs(previewSurface) {
+//                top.linkTo(parent.top)
+//                start.linkTo(parent.start)
+//                end.linkTo(parent.end)
+//                bottom.linkTo(bottomGuideline)
+//            })
+
+            CameraPreview(viewState.processCameraProvider, previewModifier, context)
         }
 
 
@@ -101,9 +117,38 @@ fun ConstraintLayoutContent(viewState: MediaCaptureViewModel.ViewState) {
 
 }
 
+@Composable
+fun CameraPreview(cameraProvider:ProcessCameraProvider, modifier: Modifier, context: Context) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    AndroidView(modifier = modifier,
+        factory = { context ->
+            PreviewView(context).apply {
+                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                post {
+                    bindPreview(cameraProvider, lifecycleOwner, this)
+                }
+            }
+        })
+
+}
+
+private fun bindPreview(cameraProvider: ProcessCameraProvider, lifecycleOwner: LifecycleOwner, previewView: PreviewView) {
+    val preview: Preview = Preview.Builder().build()
+    preview.setSurfaceProvider(previewView.surfaceProvider)
+
+    val selector = QualitySelector.from(Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
+        Quality.SD))
+    val recorder = Recorder.Builder().setQualitySelector(selector).build()
+    val videoCapture = VideoCapture.withOutput(recorder)
+    var camera = cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_FRONT_CAMERA, videoCapture, preview)
+
+
+
+}
+
 
 @Composable
-fun PreviewSurface(modifier: Modifier, context: Context?) {
+fun LoadingIndicator(modifier: Modifier, context: Context?) {
     if (context == null) {
         CircularProgressIndicator(modifier.size(200.dp))
     }
