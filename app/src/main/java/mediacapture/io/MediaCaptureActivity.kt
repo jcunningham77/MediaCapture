@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -47,7 +48,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     companion object {
         const val VIDEO_URI = "video.uri"
-        const val ARG_REQUEST_KEY = "requestKey"
     }
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
@@ -125,6 +125,7 @@ class MediaCaptureActivity : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun ConstraintLayoutContent(
         viewState: MediaCaptureViewModel.ViewState,
@@ -169,6 +170,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
             RecordButton(
                 Modifier
+
                     .constrainAs(recordButton) {
                         bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
@@ -289,19 +291,36 @@ class MediaCaptureActivity : ComponentActivity() {
 
     @Composable
     fun FlipCameraButton(modifier: Modifier) {
-        Image(
-            painterResource(id = R.drawable.baseline_flip_camera_android_24),
-            contentDescription = null,
-            modifier = modifier
+        IconButton(onClick = {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: FlipCamera: button is clicked")
+        }, modifier = modifier,
+            content = {
+                Image(
+                    painterResource(id = R.drawable.baseline_flip_camera_android_24),
+                    contentDescription = null,
+                    modifier = modifier.size(100.dp)
+                )
+            }
         )
     }
 
     @Composable
     fun RecordButton(modifier: Modifier) {
-        Image(
-            painterResource(id = R.drawable.baseline_fiber_manual_record_24),
-            contentDescription = null,
+        IconButton(
+
+            onClick = {
+                Log.i(TAG, "JEFFREYCUNNINGHAM: RecordButton: button is clicked")
+            },
             modifier = modifier,
+            content = {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
+                    contentDescription = null,
+                    modifier = modifier.size(100.dp)
+                )
+
+            }
+
         )
     }
 }
