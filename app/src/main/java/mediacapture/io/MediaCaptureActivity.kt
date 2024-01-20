@@ -35,12 +35,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import mediacapture.io.livedata.observe
-import mediacapture.io.ui.theme.MediaCaptureTheme
 
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
 
+    private var pendingRecording: PendingRecording? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,188 +61,186 @@ class MediaCaptureActivity : ComponentActivity() {
             }
         }
     }
-}
-
-@Composable
-fun ConstraintLayoutContent(
-    viewState: MediaCaptureViewModel.ViewState,
-    activity: ComponentActivity,
-) {
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
+    @Composable
+    fun ConstraintLayoutContent(
+        viewState: MediaCaptureViewModel.ViewState,
+        activity: ComponentActivity,
     ) {
-        val (previewSurface, flipCameraButton, recordButton) = createRefs()
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            val (previewSurface, flipCameraButton, recordButton) = createRefs()
 
-        val bottomGuideline = createGuidelineFromBottom(.20f)
+            val bottomGuideline = createGuidelineFromBottom(.20f)
 
-        val previewModifier = Modifier.constrainAs(previewSurface) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(bottomGuideline)
-        }
-
-        if (viewState is MediaCaptureViewModel.PendingInitialization) {
-            LoadingIndicator(modifier = previewModifier, context = null)
-        } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
-
-            CameraPreview(
-                viewState.processCameraProvider,
-                previewModifier,
-                activity
-            )
-        }
-
-
-
-        FlipCameraButton(
-            Modifier
-                .constrainAs(flipCameraButton) {
-                    top.linkTo(recordButton.top)
-                    bottom.linkTo(recordButton.bottom)
-                    start.linkTo(parent.start)
-
-                }
-                .size(50.dp, 50.dp))
-
-        RecordButton(
-            Modifier
-                .constrainAs(recordButton) {
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-
-                }
-                .size(100.dp, 100.dp))
-    }
-
-}
-
-@Composable
-fun CameraPreview(
-    cameraProvider: ProcessCameraProvider,
-    modifier: Modifier,
-    activity: ComponentActivity
-) {
-    val TAG = "CameraPreview"
-
-    AndroidView(modifier = modifier,
-        factory = { context ->
-            PreviewView(context).apply {
-
-
-                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-
-                post {
-
-                    val pendingRecording = bindPreview(
-                        cameraProvider,
-                        this,
-                        context,
-                        activity
-                    )
-
-                    Log.i(
-                        TAG,
-                        "JEFFREYCUNNINGHAM: CameraPreview: STEP3: pendingRecoding = $pendingRecording"
-                    )
-                }
+            val previewModifier = Modifier.constrainAs(previewSurface) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(bottomGuideline)
             }
-        })
 
-}
+            if (viewState is MediaCaptureViewModel.PendingInitialization) {
+                LoadingIndicator(modifier = previewModifier, context = null)
+            } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
 
-private fun bindPreview(
-    cameraProvider: ProcessCameraProvider,
-    previewView: PreviewView,
-    context: Context,
-    activity: ComponentActivity,
-): PendingRecording? {
+                CameraPreview(
+                    viewState.processCameraProvider,
+                    previewModifier,
+                    activity
+                )
+            }
 
-    val TAG = "bindPreview"
+            FlipCameraButton(
+                Modifier
+                    .constrainAs(flipCameraButton) {
+                        top.linkTo(recordButton.top)
+                        bottom.linkTo(recordButton.bottom)
+                        start.linkTo(parent.start)
 
-    val preview: Preview = Preview.Builder().build()
-    preview.setSurfaceProvider(previewView.surfaceProvider)
-    Log.i(
-        TAG,
-        "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
-    )
+                    }
+                    .size(50.dp, 50.dp))
 
-    val selector = QualitySelector.from(
-        Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
-            Quality.SD
-        )
-    )
-    val recorder = Recorder.Builder().setQualitySelector(selector).build()
-    val videoCapture = VideoCapture.withOutput(recorder)
-    val camera = cameraProvider.bindToLifecycle(
-        activity,
-        CameraSelector.DEFAULT_FRONT_CAMERA,
-        videoCapture,
-        preview
-    )
+            RecordButton(
+                Modifier
+                    .constrainAs(recordButton) {
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
 
-    Log.i(
-        TAG,
-        "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
-    )
+                    }
+                    .size(100.dp, 100.dp))
+        }
 
-    // todo handle the permissions more gracefully
-    if (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO
-        ) != PackageManager.PERMISSION_GRANTED
+    }
+
+    @Composable
+    fun CameraPreview(
+        cameraProvider: ProcessCameraProvider,
+        modifier: Modifier,
+        activity: ComponentActivity
     ) {
-        ActivityCompat.requestPermissions(
-            (context as Activity?)!!,
-            arrayOf(Manifest.permission.RECORD_AUDIO),
-            1
+        val TAG = "CameraPreview"
+
+        AndroidView(modifier = modifier,
+            factory = { context ->
+                PreviewView(context).apply {
+
+
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+
+                    post {
+
+                        pendingRecording = bindPreview(
+                            cameraProvider,
+                            this,
+                            context,
+                            activity
+                        )
+
+                        Log.i(
+                            TAG,
+                            "JEFFREYCUNNINGHAM: CameraPreview: STEP3: pendingRecoding = $pendingRecording"
+                        )
+                    }
+                }
+            })
+
+    }
+
+    private fun bindPreview(
+        cameraProvider: ProcessCameraProvider,
+        previewView: PreviewView,
+        context: Context,
+        activity: ComponentActivity,
+    ): PendingRecording? {
+
+        val TAG = "bindPreview"
+
+        val preview: Preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
         )
 
+        val selector = QualitySelector.from(
+            Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
+                Quality.SD
+            )
+        )
+        val recorder = Recorder.Builder().setQualitySelector(selector).build()
+        val videoCapture = VideoCapture.withOutput(recorder)
+        val camera = cameraProvider.bindToLifecycle(
+            activity,
+            CameraSelector.DEFAULT_FRONT_CAMERA,
+            videoCapture,
+            preview
+        )
+
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
+        )
+
+        // todo handle the permissions more gracefully
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                (context as Activity?)!!,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                1
+            )
+
+        }
+
+        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
+            .withAudioEnabled()
     }
 
-    return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
-        .withAudioEnabled()
-}
-
-private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
-        put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        }
+        return MediaStoreOutputOptions.Builder(
+            activity.application.contentResolver,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        ).setContentValues(contentValues).build()
     }
-    return MediaStoreOutputOptions.Builder(
-        activity.application.contentResolver,
-        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-    ).setContentValues(contentValues).build()
-}
 
 
-@Composable
-fun LoadingIndicator(modifier: Modifier, context: Context?) {
-    if (context == null) {
-        CircularProgressIndicator(modifier.size(200.dp))
+    @Composable
+    fun LoadingIndicator(modifier: Modifier, context: Context?) {
+        if (context == null) {
+            CircularProgressIndicator(modifier.size(200.dp))
+        }
+    }
+
+
+    @Composable
+    fun FlipCameraButton(modifier: Modifier) {
+        Image(
+            painterResource(id = R.drawable.baseline_flip_camera_android_24),
+            contentDescription = null,
+            modifier = modifier
+        )
+    }
+
+    @Composable
+    fun RecordButton(modifier: Modifier) {
+        Image(
+            painterResource(id = R.drawable.baseline_fiber_manual_record_24),
+            contentDescription = null,
+            modifier = modifier,
+        )
     }
 }
 
-
-@Composable
-fun FlipCameraButton(modifier: Modifier) {
-    Image(
-        painterResource(id = R.drawable.baseline_flip_camera_android_24),
-        contentDescription = null,
-        modifier = modifier
-    )
-}
-
-@Composable
-fun RecordButton(modifier: Modifier) {
-    Image(
-        painterResource(id = R.drawable.baseline_fiber_manual_record_24),
-        contentDescription = null,
-        modifier = modifier,
-    )
-}
 
 
