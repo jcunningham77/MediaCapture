@@ -21,6 +21,7 @@ import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.os.bundleOf
+import androidx.core.util.Consumer
 import mediacapture.io.livedata.observe
 
 class MediaCaptureActivity : ComponentActivity() {
@@ -41,6 +44,67 @@ class MediaCaptureActivity : ComponentActivity() {
     private lateinit var viewModel: MediaCaptureViewModel
 
     private var pendingRecording: PendingRecording? = null
+
+    companion object {
+        const val VIDEO_URI = "video.uri"
+        const val ARG_REQUEST_KEY = "requestKey"
+    }
+
+    private fun createRecordingListener(): Consumer<VideoRecordEvent> {
+        return Consumer<VideoRecordEvent> { event ->
+//            Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM event = ${event.javaClass.simpleName} ****")
+            when (event) {
+                is VideoRecordEvent.Start -> {
+
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture begins:")
+                }
+
+                is VideoRecordEvent.Finalize -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
+                    if (!event.hasError()) {
+                        // update app internal state
+                        Log.i(
+                            TAG,
+                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
+                        )
+                        val result = bundleOf(
+                            VIDEO_URI to event.outputResults.outputUri
+                        )
+                        Log.i(
+                            TAG,
+                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
+                        )
+
+//                        parentFragmentManager.setFragmentResult(ARG_REQUEST_KEY, result)
+
+//                        requireActivity().finish()
+                    } else {
+                        // update app state when the capture failed.
+//                        preparedRecording?.close()
+
+                        Log.i(
+                            TAG,
+                            "createRecordingListener Video capture ends with error: JEFFREYCUNNINGHAM ${event.error}"
+                        )
+//                        recording = null
+                    }
+                }
+
+                is VideoRecordEvent.Status -> {
+//                    Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM Video capture status:")
+                }
+
+                is VideoRecordEvent.Pause -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture paused:")
+                }
+
+                is VideoRecordEvent.Resume -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture resume:")
+                }
+            }
+
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
