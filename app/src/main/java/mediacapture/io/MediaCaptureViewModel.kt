@@ -62,7 +62,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
 
         val initializationViewStateObservable =
-            Observable.interval(2, 2, TimeUnit.SECONDS).take(2).subscribe {
+            Observable.interval(500, 500, TimeUnit.MILLISECONDS).take(2).subscribe {
                 // FIXME
                 // we should really be using startsWith() on viewStateSubject to emit a starting value, but that doesn't seem to work
                 // with reactivestreams:2.6.2 (or the ComponentActivity lifecycle)

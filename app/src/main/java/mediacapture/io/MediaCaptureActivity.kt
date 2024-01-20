@@ -44,15 +44,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            MediaCaptureTheme {
-                ConstraintLayoutContent(
-                    MediaCaptureViewModel.PendingInitialization,
-                    this,
-                )
-
-            }
-        }
 
         viewModel = MediaCaptureViewModel(this.application)
 
