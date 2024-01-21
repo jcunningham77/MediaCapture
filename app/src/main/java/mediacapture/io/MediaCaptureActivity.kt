@@ -44,11 +44,12 @@ class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
 
-    private var pendingRecording: PendingRecording? = null
-
     companion object {
         const val VIDEO_URI = "video.uri"
     }
+
+    // region camera x members
+    private var pendingRecording: PendingRecording? = null
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
         return Consumer<VideoRecordEvent> { event ->
@@ -75,9 +76,6 @@ class MediaCaptureActivity : ComponentActivity() {
                             "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
                         )
 
-//                        parentFragmentManager.setFragmentResult(ARG_REQUEST_KEY, result)
-
-//                        requireActivity().finish()
                     } else {
                         // update app state when the capture failed.
 //                        preparedRecording?.close()
@@ -106,6 +104,72 @@ class MediaCaptureActivity : ComponentActivity() {
         }
     }
 
+    private fun bindPreview(
+        cameraProvider: ProcessCameraProvider,
+        previewView: PreviewView,
+        context: Context,
+        activity: ComponentActivity,
+    ): PendingRecording? {
+
+        val TAG = "bindPreview"
+
+        val preview: Preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
+        )
+
+        val selector = QualitySelector.from(
+            Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
+                Quality.SD
+            )
+        )
+        val recorder = Recorder.Builder().setQualitySelector(selector).build()
+        val videoCapture = VideoCapture.withOutput(recorder)
+        val camera = cameraProvider.bindToLifecycle(
+            activity,
+            CameraSelector.DEFAULT_FRONT_CAMERA,
+            videoCapture,
+            preview
+        )
+
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
+        )
+
+        // todo handle the permissions more gracefully
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                (context as Activity?)!!,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                1
+            )
+
+        }
+
+        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
+            .withAudioEnabled()
+    }
+
+    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        }
+        return MediaStoreOutputOptions.Builder(
+            activity.application.contentResolver,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        ).setContentValues(contentValues).build()
+    }
+    // endregion camera x members
+
+    // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -125,7 +189,9 @@ class MediaCaptureActivity : ComponentActivity() {
             }
         }
     }
+    // endregion activity lifecycle
 
+    // region composable
     @Composable
     fun ConstraintLayoutContent(
         viewState: MediaCaptureViewModel.ViewState,
@@ -204,24 +270,18 @@ class MediaCaptureActivity : ComponentActivity() {
         modifier: Modifier,
         activity: ComponentActivity
     ) {
-        val TAG = "CameraPreview"
-
         AndroidView(modifier = modifier,
             factory = { context ->
                 PreviewView(context).apply {
-
-
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-
                     post {
 
                         pendingRecording = bindPreview(
                             cameraProvider,
                             this,
                             context,
-                            activity
+                            activity,
                         )
-
                         Log.i(
                             TAG,
                             "JEFFREYCUNNINGHAM: CameraPreview: STEP3: pendingRecoding = $pendingRecording"
@@ -230,70 +290,6 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             })
 
-    }
-
-    private fun bindPreview(
-        cameraProvider: ProcessCameraProvider,
-        previewView: PreviewView,
-        context: Context,
-        activity: ComponentActivity,
-    ): PendingRecording? {
-
-        val TAG = "bindPreview"
-
-        val preview: Preview = Preview.Builder().build()
-        preview.setSurfaceProvider(previewView.surfaceProvider)
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
-        )
-
-        val selector = QualitySelector.from(
-            Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
-                Quality.SD
-            )
-        )
-        val recorder = Recorder.Builder().setQualitySelector(selector).build()
-        val videoCapture = VideoCapture.withOutput(recorder)
-        val camera = cameraProvider.bindToLifecycle(
-            activity,
-            CameraSelector.DEFAULT_FRONT_CAMERA,
-            videoCapture,
-            preview
-        )
-
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
-        )
-
-        // todo handle the permissions more gracefully
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                (context as Activity?)!!,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                1
-            )
-
-        }
-
-        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
-            .withAudioEnabled()
-    }
-
-    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-        }
-        return MediaStoreOutputOptions.Builder(
-            activity.application.contentResolver,
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        ).setContentValues(contentValues).build()
     }
 
 
@@ -360,6 +356,8 @@ class MediaCaptureActivity : ComponentActivity() {
             }
         )
     }
+    // endregion composable
+
 }
 
 
