@@ -195,8 +195,6 @@ class MediaCaptureActivity : ComponentActivity() {
             }
 
         }
-
-
     }
 
 
