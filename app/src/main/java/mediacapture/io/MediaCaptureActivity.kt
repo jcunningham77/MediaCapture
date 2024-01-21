@@ -164,23 +164,41 @@ class MediaCaptureActivity : ComponentActivity() {
                         top.linkTo(recordButton.top)
                         bottom.linkTo(recordButton.bottom)
                         start.linkTo(parent.start)
-
                     }
                     .size(50.dp, 50.dp))
 
-            RecordButton(
-                Modifier
+            // record or pause button
+            val modifier = Modifier
+                .constrainAs(recordButton) {
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
 
-                    .constrainAs(recordButton) {
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
+                }
+                .size(100.dp, 100.dp)
+            when (viewState) {
+                is MediaCaptureViewModel.InitializationComplete, is MediaCaptureViewModel.IsPaused -> {
+                    RecordButton(modifier, true)
+                }
 
-                    }
-                    .size(100.dp, 100.dp))
+                is MediaCaptureViewModel.PendingInitialization -> {
+                    RecordButton(modifier, false)
+                }
+
+                is MediaCaptureViewModel.IsRecording -> {
+                    PauseButton(modifier)
+                }
+
+                is MediaCaptureViewModel.CameraFlip -> {
+                    //no-op
+                }
+            }
+
         }
 
+
     }
+
 
     @Composable
     fun CameraPreview(
@@ -292,6 +310,7 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun FlipCameraButton(modifier: Modifier) {
         IconButton(onClick = {
+            viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
             Log.i(TAG, "JEFFREYCUNNINGHAM: FlipCamera: button is clicked")
         }, modifier = modifier,
             content = {
@@ -305,13 +324,15 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     @Composable
-    fun RecordButton(modifier: Modifier) {
+    fun RecordButton(modifier: Modifier, enabled: Boolean = true) {
         IconButton(
 
             onClick = {
+                viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
                 Log.i(TAG, "JEFFREYCUNNINGHAM: RecordButton: button is clicked")
             },
             modifier = modifier,
+            enabled = enabled,
             content = {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
@@ -321,6 +342,24 @@ class MediaCaptureActivity : ComponentActivity() {
 
             }
 
+        )
+    }
+
+    @Composable
+    fun PauseButton(modifier: Modifier) {
+        IconButton(
+            onClick = {
+                viewModel.onClick(MediaCaptureViewModel.PauseClickEvent)
+                Log.i(TAG, "JEFFREYCUNNINGHAM: PauseButton: is clicked")
+            },
+            modifier = modifier,
+            content = {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_pause_circle_24),
+                    contentDescription = null,
+                    modifier = modifier.size(100.dp)
+                )
+            }
         )
     }
 }

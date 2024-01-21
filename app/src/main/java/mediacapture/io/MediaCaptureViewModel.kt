@@ -27,6 +27,8 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
+    // TODO default this to last used
+    private var cameraFacingSelected = CameraFacing.FRONT
 
     // TODO get context via UseCase and use regular ViewModel
 
@@ -58,6 +60,27 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
         )
     }
 
+    // region user event
+    fun onClick(clickEvent: ClickEvent) {
+        when (clickEvent) {
+            FlipCameraClickEvent -> {
+                val cameraFacing = cameraFacingSelected
+                cameraFacingSelected = cameraFacing.getOther()
+                viewStateSubject.onNext(CameraFlip(cameraFacing))
+            }
+
+            RecordClickEvent -> {
+                viewStateSubject.onNext(IsRecording)
+            }
+
+            PauseClickEvent -> {
+                viewStateSubject.onNext(IsPaused)
+            }
+        }
+    }
+    // endregion user events
+
+
     init {
 
 
@@ -80,8 +103,40 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
 
 
+    // region view state
     sealed class ViewState
     object PendingInitialization : ViewState()
 
     class InitializationComplete(val processCameraProvider: ProcessCameraProvider) : ViewState()
+
+    object IsRecording : ViewState()
+
+    object IsPaused : ViewState()
+
+    class CameraFlip(val cameraFacing: CameraFacing) : ViewState()
+    // endregion view state
+
+    // region click events
+    sealed class ClickEvent
+
+    object FlipCameraClickEvent : ClickEvent()
+
+    object RecordClickEvent : ClickEvent()
+
+    object PauseClickEvent : ClickEvent()
+    // endregion click events
+
+    enum class CameraFacing {
+        FRONT, BACK;
+
+
+    }
+
+    fun CameraFacing.getOther(): CameraFacing{
+        return if (this == CameraFacing.FRONT) {
+            CameraFacing.BACK
+        } else {
+            CameraFacing.FRONT
+        }
+    }
 }
