@@ -34,7 +34,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     private val TAG = this.javaClass.simpleName
 
-
+    private lateinit var processCameraProvider: ProcessCameraProvider
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val listenableFuture: ListenableFuture<ProcessCameraProvider> =
         ProcessCameraProvider.getInstance(application.applicationContext)
@@ -62,19 +62,20 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     // region user event
     fun onClick(clickEvent: ClickEvent) {
+        Log.d(TAG, "onClick() JEFFREYCUNNINGHAM called with: clickEvent = $clickEvent")
         when (clickEvent) {
             FlipCameraClickEvent -> {
                 val cameraFacing = cameraFacingSelected
                 cameraFacingSelected = cameraFacing.getOther()
-                viewStateSubject.onNext(CameraFlip(cameraFacing))
+                viewStateSubject.onNext(CameraFlip(cameraFacing,processCameraProvider))
             }
 
             RecordClickEvent -> {
-                viewStateSubject.onNext(IsRecording)
+                viewStateSubject.onNext(IsRecording(processCameraProvider))
             }
 
             PauseClickEvent -> {
-                viewStateSubject.onNext(IsPaused)
+                viewStateSubject.onNext(IsPaused(processCameraProvider))
             }
         }
     }
@@ -92,8 +93,9 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 if (it == 0L) {
                     viewStateSubject.onNext(PendingInitialization)
                 } else if (it == 1L) {
-                    disposables.add(processCameraProviderSingle.subscribe { processCameraProvider ->
-                        viewStateSubject.onNext(InitializationComplete(processCameraProvider))
+                    disposables.add(processCameraProviderSingle.subscribe { it ->
+                        processCameraProvider = it
+                        viewStateSubject.onNext(Initialized(processCameraProvider))
                     })
                 }
             }
@@ -107,13 +109,16 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     sealed class ViewState
     object PendingInitialization : ViewState()
 
-    class InitializationComplete(val processCameraProvider: ProcessCameraProvider) : ViewState()
+    open class Initialized(open val processCameraProvider: ProcessCameraProvider) : ViewState()
 
-    object IsRecording : ViewState()
+    class IsRecording(override val processCameraProvider: ProcessCameraProvider) :
+        Initialized(processCameraProvider)
 
-    object IsPaused : ViewState()
+    class IsPaused(override val processCameraProvider: ProcessCameraProvider) :
+        Initialized(processCameraProvider)
 
-    class CameraFlip(val cameraFacing: CameraFacing) : ViewState()
+    class CameraFlip(val cameraFacing: CameraFacing,override val processCameraProvider: ProcessCameraProvider) :
+        Initialized(processCameraProvider)
     // endregion view state
 
     // region click events
@@ -132,7 +137,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     }
 
-    fun CameraFacing.getOther(): CameraFacing{
+    fun CameraFacing.getOther(): CameraFacing {
         return if (this == CameraFacing.FRONT) {
             CameraFacing.BACK
         } else {

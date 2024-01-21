@@ -49,6 +49,7 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     // region camera x members
+//    private lateinit var processCameraProvider: ProcessCameraProvider
     private var pendingRecording: PendingRecording? = null
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
@@ -112,7 +113,7 @@ class MediaCaptureActivity : ComponentActivity() {
     ): PendingRecording? {
 
         val TAG = "bindPreview"
-
+        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: STEP 0.5")
         val preview: Preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
         Log.i(
@@ -212,17 +213,37 @@ class MediaCaptureActivity : ComponentActivity() {
                 end.linkTo(parent.end)
                 bottom.linkTo(bottomGuideline)
             }
+            Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: viewstate: $viewState")
+            when (viewState) {
+                is MediaCaptureViewModel.PendingInitialization -> {
+                    LoadingIndicator(modifier = previewModifier, context = null)
 
-            if (viewState is MediaCaptureViewModel.PendingInitialization) {
-                LoadingIndicator(modifier = previewModifier, context = null)
-            } else if (viewState is MediaCaptureViewModel.InitializationComplete) {
+                }
 
-                CameraPreview(
-                    viewState.processCameraProvider,
-                    previewModifier,
-                    activity
-                )
+                is MediaCaptureViewModel.Initialized -> {
+
+                    CameraPreview(
+                        viewState.processCameraProvider,
+                        previewModifier,
+                        activity
+                    )
+                }
+
+//                else -> {
+//                    Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: else block, viewstate = $viewState ")
+//                    Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: else block, processCameraProvider = $processCameraProvider ")
+////                    processCameraProvider!!.let {
+////                        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: let block, it = $it")
+////
+////                    }
+//
+////                    CameraPreview(processCameraProvider, previewModifier, activity)
+//                    LoadingIndicator(modifier = previewModifier, context = null)
+//
+//                }
+
             }
+
 
             FlipCameraButton(
                 Modifier
@@ -243,13 +264,16 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
                 .size(100.dp, 100.dp)
             when (viewState) {
-                is MediaCaptureViewModel.InitializationComplete, is MediaCaptureViewModel.IsPaused -> {
-                    RecordButton(modifier, true)
-                }
-
                 is MediaCaptureViewModel.PendingInitialization -> {
                     RecordButton(modifier, false)
                 }
+                is MediaCaptureViewModel.IsPaused -> {
+                    RecordButton(modifier, true)
+                }
+                is MediaCaptureViewModel.Initialized, is MediaCaptureViewModel.IsPaused -> {
+
+                }
+
 
                 is MediaCaptureViewModel.IsRecording -> {
                     PauseButton(modifier)
@@ -270,12 +294,13 @@ class MediaCaptureActivity : ComponentActivity() {
         modifier: Modifier,
         activity: ComponentActivity
     ) {
+        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: 1")
         AndroidView(modifier = modifier,
             factory = { context ->
                 PreviewView(context).apply {
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     post {
-
+                        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: 2")
                         pendingRecording = bindPreview(
                             cameraProvider,
                             this,
