@@ -110,16 +110,10 @@ class MediaCaptureActivity : ComponentActivity() {
         previewView: PreviewView,
         context: Context,
         activity: ComponentActivity,
-    ): PendingRecording? {
-
-        val TAG = "bindPreview"
-        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: STEP 0.5")
+    ): PendingRecording {
         val preview: Preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: bindPreview: STEP1: preview: $preview has its surface provider set to previewView's surfaceProvider, i.e.: ${previewView.surfaceProvider}"
-        )
+
 
         val selector = QualitySelector.from(
             Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
@@ -133,11 +127,6 @@ class MediaCaptureActivity : ComponentActivity() {
             CameraSelector.DEFAULT_FRONT_CAMERA,
             videoCapture,
             preview
-        )
-
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: bindPreview: STEP2: camera has been bound to processCameraProvider's lifecycle. camera: $camera"
         )
 
         // todo handle the permissions more gracefully
@@ -228,20 +217,6 @@ class MediaCaptureActivity : ComponentActivity() {
                         activity
                     )
                 }
-
-//                else -> {
-//                    Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: else block, viewstate = $viewState ")
-//                    Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: else block, processCameraProvider = $processCameraProvider ")
-////                    processCameraProvider!!.let {
-////                        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: let block, it = $it")
-////
-////                    }
-//
-////                    CameraPreview(processCameraProvider, previewModifier, activity)
-//                    LoadingIndicator(modifier = previewModifier, context = null)
-//
-//                }
-
             }
 
 
@@ -267,20 +242,14 @@ class MediaCaptureActivity : ComponentActivity() {
                 is MediaCaptureViewModel.PendingInitialization -> {
                     RecordButton(modifier, false)
                 }
-                is MediaCaptureViewModel.IsPaused -> {
-                    RecordButton(modifier, true)
-                }
-                is MediaCaptureViewModel.Initialized, is MediaCaptureViewModel.IsPaused -> {
 
-                }
+                is MediaCaptureViewModel.Initialized -> {
+                    if (!viewState.isRecording) {
+                        RecordButton(modifier, true)
+                    } else {
+                        PauseButton(modifier)
+                    }
 
-
-                is MediaCaptureViewModel.IsRecording -> {
-                    PauseButton(modifier)
-                }
-
-                is MediaCaptureViewModel.CameraFlip -> {
-                    //no-op
                 }
             }
 
@@ -294,22 +263,16 @@ class MediaCaptureActivity : ComponentActivity() {
         modifier: Modifier,
         activity: ComponentActivity
     ) {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: 1")
         AndroidView(modifier = modifier,
             factory = { context ->
                 PreviewView(context).apply {
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     post {
-                        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: 2")
                         pendingRecording = bindPreview(
                             cameraProvider,
                             this,
                             context,
                             activity,
-                        )
-                        Log.i(
-                            TAG,
-                            "JEFFREYCUNNINGHAM: CameraPreview: STEP3: pendingRecoding = $pendingRecording"
                         )
                     }
                 }
@@ -330,7 +293,6 @@ class MediaCaptureActivity : ComponentActivity() {
     fun FlipCameraButton(modifier: Modifier) {
         IconButton(onClick = {
             viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
-            Log.i(TAG, "JEFFREYCUNNINGHAM: FlipCamera: button is clicked")
         }, modifier = modifier,
             content = {
                 Image(
@@ -348,7 +310,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
             onClick = {
                 viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
-                Log.i(TAG, "JEFFREYCUNNINGHAM: RecordButton: button is clicked")
             },
             modifier = modifier,
             enabled = enabled,
@@ -369,7 +330,6 @@ class MediaCaptureActivity : ComponentActivity() {
         IconButton(
             onClick = {
                 viewModel.onClick(MediaCaptureViewModel.PauseClickEvent)
-                Log.i(TAG, "JEFFREYCUNNINGHAM: PauseButton: is clicked")
             },
             modifier = modifier,
             content = {

@@ -18,22 +18,13 @@ import java.util.concurrent.TimeUnit
 
 class MediaCaptureViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val viewStateSubject =
-        PublishSubject.create<ViewState>()
-
 
     private val disposables = CompositeDisposable()
 
 
-    val viewState: Observable<ViewState> = viewStateSubject.hide()
-
-    // TODO default this to last used
-    private var cameraFacingSelected = CameraFacing.FRONT
-
-    // TODO get context via UseCase and use regular ViewModel
-
     private val TAG = this.javaClass.simpleName
 
+    // region camera x
     private lateinit var processCameraProvider: ProcessCameraProvider
     private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private val listenableFuture: ListenableFuture<ProcessCameraProvider> =
@@ -59,6 +50,8 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             }, executorService
         )
     }
+    // endregion camera x
+
 
     // region user event
     fun onClick(clickEvent: ClickEvent) {
@@ -67,23 +60,74 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             FlipCameraClickEvent -> {
                 val cameraFacing = cameraFacingSelected
                 cameraFacingSelected = cameraFacing.getOther()
-                viewStateSubject.onNext(CameraFlip(cameraFacing,processCameraProvider))
+                viewStateSubject.onNext(CameraFlip(cameraFacing, processCameraProvider, isRecordingState))
             }
 
             RecordClickEvent -> {
-                viewStateSubject.onNext(IsRecording(processCameraProvider))
+                viewStateSubject.onNext(Initialized(processCameraProvider, isRecording = true))
+                isRecordingState = true
             }
 
             PauseClickEvent -> {
-                viewStateSubject.onNext(IsPaused(processCameraProvider))
+                viewStateSubject.onNext(Initialized(processCameraProvider, isRecording = false))
+                isRecordingState = false
             }
         }
     }
+
+    sealed class ClickEvent
+
+    object FlipCameraClickEvent : ClickEvent()
+
+    object RecordClickEvent : ClickEvent()
+
+    object PauseClickEvent : ClickEvent()
+
+
     // endregion user events
 
+    enum class CameraFacing {
+        FRONT, BACK;
+    }
+
+    private fun CameraFacing.getOther(): CameraFacing {
+        return if (this == CameraFacing.FRONT) {
+            CameraFacing.BACK
+        } else {
+            CameraFacing.FRONT
+        }
+    }
+
+    // region view state
+    private val viewStateSubject =
+        PublishSubject.create<ViewState>()
+
+    val viewState: Observable<ViewState> = viewStateSubject.hide()
+
+    // TODO default this to last used
+    private var cameraFacingSelected = CameraFacing.FRONT
+
+    // TODO we shouldn't need this member - make reactive
+    private var isRecordingState = false
+
+    sealed class ViewState
+    object PendingInitialization : ViewState()
+
+    open class Initialized(
+        open val processCameraProvider: ProcessCameraProvider,
+        open val isRecording: Boolean = false,
+        open val cameraFacing: CameraFacing = CameraFacing.FRONT,
+    ) : ViewState()
+
+    class CameraFlip(
+        override val cameraFacing: CameraFacing,
+        override val processCameraProvider: ProcessCameraProvider,
+        override val isRecording: Boolean,
+    ) :
+        Initialized(processCameraProvider)
+    // endregion view state
 
     init {
-
 
         val initializationViewStateObservable =
             Observable.interval(500, 500, TimeUnit.MILLISECONDS).take(2).subscribe {
@@ -102,46 +146,5 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
         disposables.add(initializationViewStateObservable)
 
-    }
-
-
-    // region view state
-    sealed class ViewState
-    object PendingInitialization : ViewState()
-
-    open class Initialized(open val processCameraProvider: ProcessCameraProvider) : ViewState()
-
-    class IsRecording(override val processCameraProvider: ProcessCameraProvider) :
-        Initialized(processCameraProvider)
-
-    class IsPaused(override val processCameraProvider: ProcessCameraProvider) :
-        Initialized(processCameraProvider)
-
-    class CameraFlip(val cameraFacing: CameraFacing,override val processCameraProvider: ProcessCameraProvider) :
-        Initialized(processCameraProvider)
-    // endregion view state
-
-    // region click events
-    sealed class ClickEvent
-
-    object FlipCameraClickEvent : ClickEvent()
-
-    object RecordClickEvent : ClickEvent()
-
-    object PauseClickEvent : ClickEvent()
-    // endregion click events
-
-    enum class CameraFacing {
-        FRONT, BACK;
-
-
-    }
-
-    fun CameraFacing.getOther(): CameraFacing {
-        return if (this == CameraFacing.FRONT) {
-            CameraFacing.BACK
-        } else {
-            CameraFacing.FRONT
-        }
     }
 }
