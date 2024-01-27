@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -190,17 +191,16 @@ class MediaCaptureActivity : ComponentActivity() {
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
         ) {
             val (previewSurface, flipCameraButton, recordButton) = createRefs()
 
-            val bottomGuideline = createGuidelineFromBottom(.20f)
+//            val bottomGuideline = createGuidelineFromBottom(.20f)
 
             val previewModifier = Modifier.constrainAs(previewSurface) {
                 top.linkTo(parent.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
-                bottom.linkTo(bottomGuideline)
+                bottom.linkTo(parent.bottom)
             }
             Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: viewstate: $viewState")
             when (viewState) {
@@ -263,7 +263,8 @@ class MediaCaptureActivity : ComponentActivity() {
         modifier: Modifier,
         activity: ComponentActivity
     ) {
-        AndroidView(modifier = modifier,
+        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: ")
+        AndroidView(modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 PreviewView(context).apply {
                     implementationMode = PreviewView.ImplementationMode.COMPATIBLE
@@ -276,6 +277,7 @@ class MediaCaptureActivity : ComponentActivity() {
                         )
                     }
                 }
+
             })
 
     }
