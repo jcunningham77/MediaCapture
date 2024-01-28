@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,11 +33,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import mediacapture.io.livedata.observe
@@ -192,11 +196,10 @@ class MediaCaptureActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val (previewSurface, flipCameraButton, recordButton) = createRefs()
+            val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef) = createRefs()
 
-//            val bottomGuideline = createGuidelineFromBottom(.20f)
 
-            val previewModifier = Modifier.constrainAs(previewSurface) {
+            val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
                 top.linkTo(parent.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
@@ -219,19 +222,21 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
+            val controlGuideline = createGuidelineFromBottom(.20f)
+
 
             FlipCameraButton(
                 Modifier
-                    .constrainAs(flipCameraButton) {
-                        top.linkTo(recordButton.top)
-                        bottom.linkTo(recordButton.bottom)
+                    .constrainAs(flipCameraButtonRef) {
+                        top.linkTo(recordButtonRef.top)
+                        bottom.linkTo(recordButtonRef.bottom)
                         start.linkTo(parent.start)
                     }
                     .size(50.dp, 50.dp))
 
             // record or pause button
             val modifier = Modifier
-                .constrainAs(recordButton) {
+                .constrainAs(recordButtonRef) {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
