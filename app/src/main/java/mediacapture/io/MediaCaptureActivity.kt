@@ -8,8 +8,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.FrameLayout
-import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,21 +24,23 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import mediacapture.io.livedata.observe
@@ -205,6 +205,9 @@ class MediaCaptureActivity : ComponentActivity() {
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom)
             }
+
+            val controlGuideline = createGuidelineFromBottom(.20f)
+
             Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: viewstate: $viewState")
             when (viewState) {
                 is MediaCaptureViewModel.PendingInitialization -> {
@@ -216,13 +219,12 @@ class MediaCaptureActivity : ComponentActivity() {
 
                     CameraPreview(
                         viewState.processCameraProvider,
-                        previewModifier,
                         activity
                     )
                 }
             }
 
-            val controlGuideline = createGuidelineFromBottom(.20f)
+
 
 
             FlipCameraButton(
@@ -265,25 +267,36 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun CameraPreview(
         cameraProvider: ProcessCameraProvider,
-        modifier: Modifier,
         activity: ComponentActivity
     ) {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: ")
-        AndroidView(modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                PreviewView(context).apply {
-                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                    post {
-                        pendingRecording = bindPreview(
-                            cameraProvider,
-                            this,
-                            context,
-                            activity,
-                        )
-                    }
-                }
 
-            })
+
+        Log.i(TAG, "JEFFREYCUNNINGHAM: CameraPreview: ")
+        Box(Modifier.fillMaxSize()) {
+            AndroidView(modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    PreviewView(context).apply {
+                        implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        post {
+                            pendingRecording = bindPreview(
+                                cameraProvider,
+                                this,
+                                context,
+                                activity,
+                            )
+                        }
+                    }
+
+                })
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .fillMaxHeight(.20F)
+                    .background(colorResource(id = R.color.black_40))
+            )
+        }
+
 
     }
 
@@ -349,8 +362,4 @@ class MediaCaptureActivity : ComponentActivity() {
         )
     }
     // endregion composable
-
 }
-
-
-
