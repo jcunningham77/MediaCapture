@@ -224,19 +224,18 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-
-
-
             FlipCameraButton(
                 Modifier
                     .constrainAs(flipCameraButtonRef) {
                         top.linkTo(recordButtonRef.top)
                         bottom.linkTo(recordButtonRef.bottom)
                         start.linkTo(parent.start)
+                        end.linkTo(recordButtonRef.start)
                     }
-                    .size(50.dp, 50.dp))
+                    .size(40.dp, 40.dp)
+            )
 
-            // record or pause button
+            // record button
             val modifier = Modifier
                 .constrainAs(recordButtonRef) {
                     bottom.linkTo(parent.bottom)
@@ -245,20 +244,9 @@ class MediaCaptureActivity : ComponentActivity() {
 
                 }
                 .size(100.dp, 100.dp)
-            when (viewState) {
-                is MediaCaptureViewModel.PendingInitialization -> {
-                    RecordButton(modifier, false)
-                }
 
-                is MediaCaptureViewModel.Initialized -> {
-                    if (!viewState.isRecording) {
-                        RecordButton(modifier, true)
-                    } else {
-                        PauseButton(modifier)
-                    }
+            RecordButton(modifier, viewState)
 
-                }
-            }
 
         }
     }
@@ -325,36 +313,35 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     @Composable
-    fun RecordButton(modifier: Modifier, enabled: Boolean = true) {
-        IconButton(
+    fun RecordButton(
+        modifier: Modifier,
+        viewState: MediaCaptureViewModel.ViewState
+    ) {
 
-            onClick = {
-                viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
-            },
+        var clickListener: () -> Unit = {}
+        var drawableInt = 0
+        var enabled = false
+
+        if (viewState is MediaCaptureViewModel.PendingInitialization) {
+            drawableInt = R.drawable.baseline_fiber_manual_record_24
+            enabled = false
+        } else if (viewState is MediaCaptureViewModel.Initialized && !viewState.isRecording) {
+            clickListener = { viewModel.onClick(MediaCaptureViewModel.RecordClickEvent) }
+            drawableInt = R.drawable.baseline_fiber_manual_record_24
+            enabled = true
+        } else if (viewState is MediaCaptureViewModel.Initialized) { // we are recording
+            clickListener = { viewModel.onClick(MediaCaptureViewModel.PauseClickEvent) }
+            drawableInt = R.drawable.baseline_pause_circle_24
+            enabled = true
+        }
+
+        IconButton(
+            onClick = clickListener,
             modifier = modifier,
             enabled = enabled,
             content = {
                 Image(
-                    painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
-                    contentDescription = null,
-                    modifier = modifier.size(100.dp)
-                )
-
-            }
-
-        )
-    }
-
-    @Composable
-    fun PauseButton(modifier: Modifier) {
-        IconButton(
-            onClick = {
-                viewModel.onClick(MediaCaptureViewModel.PauseClickEvent)
-            },
-            modifier = modifier,
-            content = {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_pause_circle_24),
+                    painter = painterResource(id = drawableInt),
                     contentDescription = null,
                     modifier = modifier.size(100.dp)
                 )
