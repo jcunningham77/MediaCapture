@@ -58,9 +58,9 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
         Log.d(TAG, "onClick() JEFFREYCUNNINGHAM called with: clickEvent = $clickEvent")
         when (clickEvent) {
             FlipCameraClickEvent -> {
-                val cameraFacing = cameraFacingSelected
-                cameraFacingSelected = cameraFacing.getOther()
-                viewStateSubject.onNext(CameraFlip(cameraFacing, processCameraProvider, isRecordingState))
+                val cameraFacing = cameraFacingSelected.getOther()
+                cameraFacingSelected = cameraFacing
+                viewStateSubject.onNext(Initialized(processCameraProvider, isRecordingState, cameraFacing))
             }
 
             RecordClickEvent -> {
@@ -117,14 +117,11 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
         open val processCameraProvider: ProcessCameraProvider,
         open val isRecording: Boolean = false,
         open val cameraFacing: CameraFacing = CameraFacing.FRONT,
-    ) : ViewState()
+    ) : ViewState() {
+        override fun toString(): String =
+            "Initialized.ViewState, isRecording: $isRecording, cameraFacing: $cameraFacing"
+    }
 
-    class CameraFlip(
-        override val cameraFacing: CameraFacing,
-        override val processCameraProvider: ProcessCameraProvider,
-        override val isRecording: Boolean,
-    ) :
-        Initialized(processCameraProvider)
     // endregion view state
 
     init {
@@ -139,7 +136,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 } else if (it == 1L) {
                     disposables.add(processCameraProviderSingle.subscribe { it ->
                         processCameraProvider = it
-                        viewStateSubject.onNext(Initialized(processCameraProvider))
+                        viewStateSubject.onNext(Initialized(processCameraProvider, cameraFacing = cameraFacingSelected))
                     })
                 }
             }
