@@ -173,6 +173,10 @@ class MediaCaptureActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
             Log.d("-- CAMERA PERMISSION --", permission.toString())
         }.launch(Manifest.permission.CAMERA)
+
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
+            Log.d("-- RECORD_AUDIO PERMISSION --", permission.toString())
+        }.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     override fun onResume() {
