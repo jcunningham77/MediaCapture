@@ -52,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
@@ -101,7 +100,13 @@ class MediaCaptureActivity : ComponentActivity() {
 
                         Log.i(
                             TAG,
-                            "createRecordingListener Video capture ends with error: JEFFREYCUNNINGHAM ${event.error}"
+                            "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
+                        )
+
+                        Log.e(
+                            "createRecordingListener Video capture ends with error: 2 JEFFREYCUNNINGHAM",
+                            event.cause?.message,
+                            event.cause
                         )
 //                        recording = null
                     }
@@ -182,6 +187,21 @@ class MediaCaptureActivity : ComponentActivity() {
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).setContentValues(contentValues).build()
     }
+
+    private fun startRecording() {
+        recording = pendingRecording!!.start(
+            ContextCompat.getMainExecutor(this.baseContext),
+            createRecordingListener()
+        )
+    }
+
+    private fun stopRecording() {
+        if (recording != null) {
+            recording!!.stop()
+        } else {
+            Log.i(TAG, "stopRecording:  recording is NULL")
+        }
+    }
     // endregion camera x members
 
     // region activity lifecycle
@@ -203,6 +223,17 @@ class MediaCaptureActivity : ComponentActivity() {
         super.onResume()
 
         viewModel.viewState.observe(this) {
+
+
+            if (it is MediaCaptureViewModel.Initialized) {
+                if (it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
+                    startRecording()
+                }
+                if (it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED) {
+                    stopRecording()
+                }
+            }
+
             setContent {
                 ConstraintLayoutContent(it, this)
             }
@@ -210,12 +241,6 @@ class MediaCaptureActivity : ComponentActivity() {
     }
     // endregion activity lifecycle
 
-    private fun startRecording() {
-        recording = pendingRecording!!.start(
-            ContextCompat.getMainExecutor(this),
-            createRecordingListener()
-        )
-    }
 
     // region composable
     @Composable
