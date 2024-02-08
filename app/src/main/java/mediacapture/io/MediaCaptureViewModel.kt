@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.lifecycle.AndroidViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import io.reactivex.Observable
@@ -60,16 +61,22 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             FlipCameraClickEvent -> {
                 val cameraFacing = cameraFacingSelected.getOther()
                 cameraFacingSelected = cameraFacing
-                viewStateSubject.onNext(Initialized(processCameraProvider, isRecordingState, cameraFacing))
+                viewStateSubject.onNext(
+                    Initialized(
+                        processCameraProvider,
+                        recordingState = RecordingState.INITIALIZED,
+                        cameraFacing
+                    )
+                )
             }
 
             RecordClickEvent -> {
-                viewStateSubject.onNext(Initialized(processCameraProvider, isRecording = true))
+                viewStateSubject.onNext(Initialized(processCameraProvider, recordingState = RecordingState.RECORDING))
                 isRecordingState = true
             }
 
-            PauseClickEvent -> {
-                viewStateSubject.onNext(Initialized(processCameraProvider, isRecording = false))
+            StopClickEvent -> {
+                viewStateSubject.onNext(Initialized(processCameraProvider, recordingState = RecordingState.STOPPED))
                 isRecordingState = false
             }
         }
@@ -81,7 +88,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     object RecordClickEvent : ClickEvent()
 
-    object PauseClickEvent : ClickEvent()
+    object StopClickEvent : ClickEvent()
 
 
     // endregion user events
@@ -115,11 +122,17 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     open class Initialized(
         open val processCameraProvider: ProcessCameraProvider,
-        open val isRecording: Boolean = false,
+        open val recordingState: RecordingState,
         open val cameraFacing: CameraFacing = CameraFacing.FRONT,
     ) : ViewState() {
         override fun toString(): String =
-            "Initialized.ViewState, isRecording: $isRecording, cameraFacing: $cameraFacing"
+            "Initialized.ViewState, recordingState: $recordingState, cameraFacing: $cameraFacing"
+    }
+
+    enum class RecordingState {
+        INITIALIZED, // no recording has yet been attempted
+        RECORDING, // currently recording
+        STOPPED // was recording but is now stopped
     }
 
     // endregion view state
@@ -136,7 +149,13 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 } else if (it == 1L) {
                     disposables.add(processCameraProviderSingle.subscribe { it ->
                         processCameraProvider = it
-                        viewStateSubject.onNext(Initialized(processCameraProvider, cameraFacing = cameraFacingSelected))
+                        viewStateSubject.onNext(
+                            Initialized(
+                                processCameraProvider,
+                                recordingState = RecordingState.INITIALIZED,
+                                cameraFacing = cameraFacingSelected,
+                            )
+                        )
                     })
                 }
             }

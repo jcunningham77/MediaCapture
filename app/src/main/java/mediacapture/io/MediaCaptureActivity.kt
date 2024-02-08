@@ -19,6 +19,7 @@ import androidx.camera.video.PendingRecording
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,10 +45,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import mediacapture.io.livedata.observe
@@ -60,7 +67,7 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     // region camera x members
-//    private lateinit var processCameraProvider: ProcessCameraProvider
+    private var recording: Recording? = null
     private var pendingRecording: PendingRecording? = null
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
@@ -203,6 +210,13 @@ class MediaCaptureActivity : ComponentActivity() {
     }
     // endregion activity lifecycle
 
+    private fun startRecording() {
+        recording = pendingRecording!!.start(
+            ContextCompat.getMainExecutor(this),
+            createRecordingListener()
+        )
+    }
+
     // region composable
     @Composable
     fun ConstraintLayoutContent(
@@ -262,7 +276,19 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
                 .size(100.dp, 100.dp)
 
-            RecordButton(modifier, viewState)
+            if (viewState is MediaCaptureViewModel.PendingInitialization
+                || (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
+            ) {
+                RecordButton(modifier, viewState)
+            } else {
+                Text(
+                    "Recording complete!",
+                    modifier = modifier,
+                    color = colorResource(R.color.white),
+                    fontSize = TextUnit(20f, TextUnitType.Sp),
+                    textAlign = TextAlign.Center
+                )
+            }
 
 
         }
@@ -354,13 +380,13 @@ class MediaCaptureActivity : ComponentActivity() {
         if (viewState is MediaCaptureViewModel.PendingInitialization) {
             drawableInt = R.drawable.baseline_fiber_manual_record_24
             enabled = false
-        } else if (viewState is MediaCaptureViewModel.Initialized && !viewState.isRecording) {
+        } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED) {
             clickListener = { viewModel.onClick(MediaCaptureViewModel.RecordClickEvent) }
             drawableInt = R.drawable.baseline_fiber_manual_record_24
             enabled = true
-        } else if (viewState is MediaCaptureViewModel.Initialized) { // we are recording
-            clickListener = { viewModel.onClick(MediaCaptureViewModel.PauseClickEvent) }
-            drawableInt = R.drawable.baseline_pause_circle_24
+        } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) { // we are recording
+            clickListener = { viewModel.onClick(MediaCaptureViewModel.StopClickEvent) }
+            drawableInt = R.drawable.baseline_stop_24
             enabled = true
         }
 
