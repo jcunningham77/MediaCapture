@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +56,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
+import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 
 class MediaCaptureActivity : ComponentActivity() {
@@ -133,6 +135,8 @@ class MediaCaptureActivity : ComponentActivity() {
         previewView: PreviewView,
         context: Context,
         activity: ComponentActivity,
+        lifecycleOwner: LifecycleOwner,
+
     ): PendingRecording {
         Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
         val preview: Preview = Preview.Builder().build()
@@ -153,7 +157,7 @@ class MediaCaptureActivity : ComponentActivity() {
         viewState.processCameraProvider.unbindAll()
 
         val camera = viewState.processCameraProvider.bindToLifecycle(
-            activity,
+            lifecycleOwner,
             cameraSelector,
             videoCapture,
             preview
@@ -326,6 +330,7 @@ class MediaCaptureActivity : ComponentActivity() {
         activity: ComponentActivity,
     ) {
 
+        val lifecycleOwner = LocalLifecycleOwner.current
         Box(Modifier.fillMaxSize()) {
             AndroidView(modifier = Modifier.fillMaxSize(),
                 factory = { context ->
@@ -339,7 +344,8 @@ class MediaCaptureActivity : ComponentActivity() {
                         viewState as MediaCaptureViewModel.Initialized,
                         it,
                         it.context,
-                        activity
+                        activity,
+                        lifecycleOwner,
                     )
                 }
             )
