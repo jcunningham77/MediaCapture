@@ -56,12 +56,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
+    private lateinit var lifecycleLogger: LifecycleLogger
 
     companion object {
         const val VIDEO_URI = "video.uri"
@@ -106,7 +108,7 @@ class MediaCaptureActivity : ComponentActivity() {
                         )
 
                         Log.e(
-                            "createRecordingListener Video capture ends with error: 2 JEFFREYCUNNINGHAM",
+                            TAG,
                             event.cause?.message,
                             event.cause
                         )
@@ -135,7 +137,6 @@ class MediaCaptureActivity : ComponentActivity() {
         previewView: PreviewView,
         context: Context,
         activity: ComponentActivity,
-        lifecycleOwner: LifecycleOwner,
 
     ): PendingRecording {
         Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
@@ -157,7 +158,7 @@ class MediaCaptureActivity : ComponentActivity() {
         viewState.processCameraProvider.unbindAll()
 
         val camera = viewState.processCameraProvider.bindToLifecycle(
-            lifecycleOwner,
+            activity,
             cameraSelector,
             videoCapture,
             preview
@@ -214,6 +215,8 @@ class MediaCaptureActivity : ComponentActivity() {
 
         viewModel = MediaCaptureViewModel(this.application)
 
+
+
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
             Log.d("-- CAMERA PERMISSION --", permission.toString())
         }.launch(Manifest.permission.CAMERA)
@@ -221,6 +224,9 @@ class MediaCaptureActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
             Log.d("-- RECORD_AUDIO PERMISSION --", permission.toString())
         }.launch(Manifest.permission.RECORD_AUDIO)
+
+        lifecycleLogger = LifecycleLogger()
+        lifecycleLogger.registerLifecycle(this.lifecycle)
     }
 
     override fun onResume() {
@@ -330,7 +336,6 @@ class MediaCaptureActivity : ComponentActivity() {
         activity: ComponentActivity,
     ) {
 
-        val lifecycleOwner = LocalLifecycleOwner.current
         Box(Modifier.fillMaxSize()) {
             AndroidView(modifier = Modifier.fillMaxSize(),
                 factory = { context ->
@@ -345,7 +350,6 @@ class MediaCaptureActivity : ComponentActivity() {
                         it,
                         it.context,
                         activity,
-                        lifecycleOwner,
                     )
                 }
             )
@@ -386,7 +390,6 @@ class MediaCaptureActivity : ComponentActivity() {
             animationTrigger = !animationTrigger
         }, modifier = modifier,
             content = {
-                Log.i(TAG, "JEFFREYCUNNINGHAM: FlipCameraButton: angle = $angle")
                 Image(
                     painterResource(id = R.drawable.baseline_flip_camera_android_24),
                     contentDescription = null,
