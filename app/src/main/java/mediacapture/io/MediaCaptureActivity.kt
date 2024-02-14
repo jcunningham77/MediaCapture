@@ -74,10 +74,8 @@ class MediaCaptureActivity : ComponentActivity() {
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
         return Consumer<VideoRecordEvent> { event ->
-//            Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM event = ${event.javaClass.simpleName} ****")
             when (event) {
                 is VideoRecordEvent.Start -> {
-
                     Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture begins:")
                 }
 
@@ -98,9 +96,6 @@ class MediaCaptureActivity : ComponentActivity() {
                         )
 
                     } else {
-                        // update app state when the capture failed.
-//                        preparedRecording?.close()
-
                         Log.i(
                             TAG,
                             "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
@@ -111,12 +106,11 @@ class MediaCaptureActivity : ComponentActivity() {
                             event.cause?.message,
                             event.cause
                         )
-//                        recording = null
+                        recording = null
                     }
                 }
 
                 is VideoRecordEvent.Status -> {
-//                    Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM Video capture status:")
                 }
 
                 is VideoRecordEvent.Pause -> {
@@ -215,8 +209,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
         viewModel = MediaCaptureViewModel(this.application)
 
-
-
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
             Log.d("-- CAMERA PERMISSION --", permission.toString())
         }.launch(Manifest.permission.CAMERA)
@@ -224,16 +216,12 @@ class MediaCaptureActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
             Log.d("-- RECORD_AUDIO PERMISSION --", permission.toString())
         }.launch(Manifest.permission.RECORD_AUDIO)
-
-        lifecycleLogger = LifecycleLogger()
-        lifecycleLogger.registerLifecycle(this.lifecycle)
     }
 
     override fun onResume() {
         super.onResume()
 
         viewModel.viewState.observe(this) {
-
 
             if (it is MediaCaptureViewModel.Initialized) {
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
@@ -251,7 +239,6 @@ class MediaCaptureActivity : ComponentActivity() {
     }
     // endregion activity lifecycle
 
-
     // region composable
     @Composable
     fun ConstraintLayoutContent(
@@ -264,15 +251,12 @@ class MediaCaptureActivity : ComponentActivity() {
         ) {
             val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef) = createRefs()
 
-
             val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
                 top.linkTo(parent.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom)
             }
-
-            val controlGuideline = createGuidelineFromBottom(.20f)
 
             Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: viewstate: $viewState")
             when (viewState) {
@@ -312,7 +296,8 @@ class MediaCaptureActivity : ComponentActivity() {
                 .size(100.dp, 100.dp)
 
             if (viewState is MediaCaptureViewModel.PendingInitialization
-                || (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
+                || (viewState is MediaCaptureViewModel.Initialized &&
+                        viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
             ) {
                 RecordButton(modifier, viewState)
             } else {
@@ -324,8 +309,6 @@ class MediaCaptureActivity : ComponentActivity() {
                     textAlign = TextAlign.Center
                 )
             }
-
-
         }
     }
 
@@ -376,7 +359,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     @Composable
     fun FlipCameraButton(modifier: Modifier) {
-
 
         var animationTrigger by remember {
             mutableStateOf(false)
