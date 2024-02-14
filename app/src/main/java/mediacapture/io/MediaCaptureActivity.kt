@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.video.FallbackStrategy
@@ -43,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -56,14 +56,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
 import mediacapture.io.livedata.observe
 
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
     private lateinit var lifecycleLogger: LifecycleLogger
+    private lateinit var camera: Camera
 
     companion object {
         const val VIDEO_URI = "video.uri"
@@ -138,7 +137,7 @@ class MediaCaptureActivity : ComponentActivity() {
         context: Context,
         activity: ComponentActivity,
 
-    ): PendingRecording {
+        ): PendingRecording {
         Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
         val preview: Preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
@@ -157,7 +156,7 @@ class MediaCaptureActivity : ComponentActivity() {
         }
         viewState.processCameraProvider.unbindAll()
 
-        val camera = viewState.processCameraProvider.bindToLifecycle(
+        camera = viewState.processCameraProvider.bindToLifecycle(
             activity,
             cameraSelector,
             videoCapture,
@@ -178,6 +177,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
         }
 
+        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: camera = $camera")
         return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
             .withAudioEnabled()
     }
@@ -332,7 +332,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
     @Composable
     fun CameraPreview(
-        viewState: MediaCaptureViewModel.ViewState,
+        viewState: MediaCaptureViewModel.Initialized,
         activity: ComponentActivity,
     ) {
 
@@ -345,12 +345,14 @@ class MediaCaptureActivity : ComponentActivity() {
 
                 },
                 update = {
-                    pendingRecording = bindPreview(
-                        viewState as MediaCaptureViewModel.Initialized,
-                        it,
-                        it.context,
-                        activity,
-                    )
+                    if (viewState.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED) {
+                        pendingRecording = bindPreview(
+                            viewState,
+                            it,
+                            it.context,
+                            activity,
+                        )
+                    }
                 }
             )
             Box(
