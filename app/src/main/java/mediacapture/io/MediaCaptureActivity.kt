@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -40,6 +41,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,14 +49,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
@@ -253,7 +258,7 @@ class MediaCaptureActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef) = createRefs()
+            val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef, elapsedTimeRef) = createRefs()
 
             val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
                 top.linkTo(parent.top)
@@ -277,6 +282,15 @@ class MediaCaptureActivity : ComponentActivity() {
                     )
                 }
             }
+
+            ElapsedTimeView(modifier = Modifier
+                .constrainAs(elapsedTimeRef) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+
+                }
+                .padding(5.dp))
 
             FlipCameraButton(
                 Modifier
@@ -433,6 +447,13 @@ class MediaCaptureActivity : ComponentActivity() {
                 )
             }
         )
+    }
+
+    @Composable
+    fun ElapsedTimeView(modifier: Modifier) {
+        Text("0:00", modifier = modifier.drawBehind {
+            drawCircle(Color(R.color.black_40), radius = this.size.width)
+        }, fontSize = 20.sp, color = Color.White)
     }
     // endregion composable
 }
