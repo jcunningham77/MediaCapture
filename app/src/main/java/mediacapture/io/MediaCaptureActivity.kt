@@ -26,13 +26,17 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -44,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -61,7 +66,6 @@ import mediacapture.io.livedata.observe
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
-    private lateinit var lifecycleLogger: LifecycleLogger
     private lateinit var camera: Camera
 
     companion object {
@@ -291,8 +295,8 @@ class MediaCaptureActivity : ComponentActivity() {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-
                 }
+                .padding(10.dp)
                 .size(100.dp, 100.dp)
 
             if (viewState is MediaCaptureViewModel.PendingInitialization
@@ -416,7 +420,16 @@ class MediaCaptureActivity : ComponentActivity() {
                 Image(
                     painter = painterResource(id = drawableInt),
                     contentDescription = null,
-                    modifier = modifier.size(100.dp)
+                    modifier = modifier
+                        .size(100.dp)
+                        .border(
+                            BorderStroke(4.dp, Color.Transparent),
+                            CircleShape
+                        )
+                        .border(
+                            BorderStroke(4.dp, Color.White),
+                            CircleShape
+                        )
                 )
             }
         )
