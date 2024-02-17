@@ -6,12 +6,12 @@ import android.util.Log
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.compose.runtime.rememberCompositionContext
 import androidx.lifecycle.AndroidViewModel
 import com.google.common.util.concurrent.ListenableFuture
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -71,13 +71,29 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             }
 
             RecordClickEvent -> {
-                viewStateSubject.onNext(Initialized(processCameraProvider, recordingState = RecordingState.RECORDING))
+                viewStateSubject.onNext(
+                    Initialized(
+                        processCameraProvider,
+                        recordingState = RecordingState.RECORDING
+                    )
+                )
                 isRecordingState = true
+                internalClickDisposable = internalTicksEmitter.subscribe {
+                    ticksSubject.onNext(it)
+                }
+
+                disposables.add(internalClickDisposable!!)
             }
 
             StopClickEvent -> {
-                viewStateSubject.onNext(Initialized(processCameraProvider, recordingState = RecordingState.STOPPED))
+                viewStateSubject.onNext(
+                    Initialized(
+                        processCameraProvider,
+                        recordingState = RecordingState.STOPPED
+                    )
+                )
                 isRecordingState = false
+                disposables.remove(internalClickDisposable!!)
             }
         }
     }
@@ -116,6 +132,12 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     // TODO we shouldn't need this member - make reactive
     private var isRecordingState = false
+
+    // TODO we should handle elapsed ticks via Compose SideEffect
+    private val ticksSubject: PublishSubject<Long> = PublishSubject.create()
+    val ticksObservable: Observable<Long> = ticksSubject.hide()
+    private var internalClickDisposable: Disposable? = null
+    private val internalTicksEmitter = Observable.interval(1, TimeUnit.SECONDS)
 
     sealed class ViewState
     object PendingInitialization : ViewState()

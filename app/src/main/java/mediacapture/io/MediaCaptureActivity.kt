@@ -27,7 +27,6 @@ import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,32 +45,21 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
@@ -89,9 +77,12 @@ class MediaCaptureActivity : ComponentActivity() {
         const val VIDEO_URI = "video.uri"
     }
 
+    private var elapsedTime = mutableStateOf<Long>(0)
+
     // region camera x members
     private var recording: Recording? = null
     private var pendingRecording: PendingRecording? = null
+
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
         return Consumer<VideoRecordEvent> { event ->
@@ -257,6 +248,10 @@ class MediaCaptureActivity : ComponentActivity() {
                 ConstraintLayoutContent(it, this)
             }
         }
+
+        viewModel.ticksObservable.observe(this) {
+            elapsedTime.value = it
+        }
     }
     // endregion activity lifecycle
 
@@ -278,8 +273,6 @@ class MediaCaptureActivity : ComponentActivity() {
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom)
             }
-
-            Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: viewstate: $viewState")
             when (viewState) {
                 is MediaCaptureViewModel.PendingInitialization -> {
                     LoadingIndicator(modifier = previewModifier, context = null)
@@ -302,7 +295,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     end.linkTo(parent.end)
 
                 }
-                .padding(10.dp))
+                .padding(10.dp), elapsedTime)
 
             FlipCameraButton(
                 Modifier
@@ -463,8 +456,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     @Composable
-    fun ElapsedTimeView(modifier: Modifier) {
-
+    fun ElapsedTimeView(modifier: Modifier, elapsedTime: MutableState<Long>) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier
@@ -477,7 +469,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 ),
         ) {
             Text(
-                text = "0:00",
+                text = "${elapsedTime.value}",
                 color = Color.White,
                 fontSize = TextUnit(14f, TextUnitType.Sp)
             )
