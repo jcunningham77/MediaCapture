@@ -78,11 +78,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                     )
                 )
                 isRecordingState = true
-                internalClickDisposable = internalTicksEmitter.subscribe {
-                    ticksSubject.onNext(it)
-                }
-
-                disposables.add(internalClickDisposable!!)
             }
 
             StopClickEvent -> {
@@ -93,7 +88,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                     )
                 )
                 isRecordingState = false
-                disposables.remove(internalClickDisposable!!)
             }
         }
     }
@@ -132,12 +126,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     // TODO we shouldn't need this member - make reactive
     private var isRecordingState = false
-
-    // TODO we should handle elapsed ticks via Compose SideEffect
-    private val ticksSubject: PublishSubject<Long> = PublishSubject.create()
-    val ticksObservable: Observable<Long> = ticksSubject.hide()
-    private var internalClickDisposable: Disposable? = null
-    private val internalTicksEmitter = Observable.interval(1, TimeUnit.SECONDS)
 
     sealed class ViewState
     object PendingInitialization : ViewState()

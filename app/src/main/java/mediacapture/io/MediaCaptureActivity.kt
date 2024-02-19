@@ -45,6 +45,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +67,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
+import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
+import java.util.Locale
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
@@ -77,7 +83,7 @@ class MediaCaptureActivity : ComponentActivity() {
         const val VIDEO_URI = "video.uri"
     }
 
-    private var elapsedTime = mutableStateOf<Long>(0)
+    private var isRecording = mutableStateOf(false)
 
     // region camera x members
     private var recording: Recording? = null
@@ -238,19 +244,17 @@ class MediaCaptureActivity : ComponentActivity() {
             if (it is MediaCaptureViewModel.Initialized) {
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
                     startRecording()
+                    isRecording.value = true
                 }
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED) {
                     stopRecording()
+                    isRecording.value = false
                 }
             }
 
             setContent {
                 ConstraintLayoutContent(it, this)
             }
-        }
-
-        viewModel.ticksObservable.observe(this) {
-            elapsedTime.value = it
         }
     }
     // endregion activity lifecycle
@@ -295,7 +299,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     end.linkTo(parent.end)
 
                 }
-                .padding(10.dp), elapsedTime)
+                .padding(10.dp), isRecording)
 
             FlipCameraButton(
                 Modifier
@@ -456,7 +460,26 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     @Composable
-    fun ElapsedTimeView(modifier: Modifier, elapsedTime: MutableState<Long>) {
+    fun ElapsedTimeView(modifier: Modifier, isRecording: MutableState<Boolean>) {
+
+        var elapsedTime by remember {
+            mutableStateOf(0L)
+        }
+        LaunchedEffect(key1 = isRecording.value, block = {
+            Log.i(
+                TAG,
+                "JEFFREYCUNNINGHAM: ElapsedTimeView: LaunchedEffect isRecording: ${isRecording.value}"
+            )
+            while (isRecording.value) {
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: ElapsedTimeView: LaunchedEffect isRecording: ${isRecording.value}, incrementing elasped seconds"
+                )
+                elapsedTime++
+                delay(1000)
+            }
+        })
+
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier
@@ -469,11 +492,20 @@ class MediaCaptureActivity : ComponentActivity() {
                 ),
         ) {
             Text(
-                text = "${elapsedTime.value}",
+                text = elapsedTime.formatForElapsedTimeView(),
                 color = Color.White,
                 fontSize = TextUnit(14f, TextUnitType.Sp)
             )
         }
     }
     // endregion composable
+
+    // TODO Locale/18n?
+    private fun Long.formatForElapsedTimeView():String {
+        Log.i(TAG, "JEFFREYCUNNINGHAM: formatForElapsedTimeView: this = $this")
+        val duration = this.toDuration(DurationUnit.SECONDS)
+        return duration.toComponents { minutes, seconds, _ ->
+            "%02d:%02d".format(minutes, seconds)
+        }
+    }
 }
