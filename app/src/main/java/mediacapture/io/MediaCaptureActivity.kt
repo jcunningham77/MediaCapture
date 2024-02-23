@@ -24,7 +24,14 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -53,11 +60,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -435,6 +450,8 @@ class MediaCaptureActivity : ComponentActivity() {
             enabled = true
         }
 
+
+
         IconButton(
             onClick = clickListener,
             modifier = modifier,
@@ -449,13 +466,87 @@ class MediaCaptureActivity : ComponentActivity() {
                             BorderStroke(4.dp, Color.Transparent),
                             CircleShape
                         )
-                        .border(
-                            BorderStroke(4.dp, Color.White),
-                            CircleShape
+                        .animatedBorder(
+                            listOf(Color.White, Color.Red),
+                            Color.Transparent,
+                            shape = CircleShape,
+                            borderWidth = 10.dp
+
                         )
                 )
             }
         )
+    }
+
+    @Composable
+    fun Modifier.animatedBorder(
+        borderColors: List<Color>,
+        backgroundColor: Color,
+        shape: Shape = RectangleShape,
+        borderWidth: Dp = 1.dp,
+        animationDurationInMillis: Int = 1000,
+        easing: Easing = LinearEasing
+    ): Modifier {
+        val brush = Brush.sweepGradient(borderColors)
+        val infiniteTransition = rememberInfiniteTransition(label = "animatedBorder")
+        val angle by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = animationDurationInMillis, easing = easing),
+                repeatMode = RepeatMode.Restart
+            ), label = "angleAnimation"
+        )
+
+        return this
+            .clip(shape)
+            .padding(borderWidth)
+            .drawWithContent {
+                rotate(angle) {
+                    drawCircle(
+                        brush = brush,
+                        radius = size.width,
+                        blendMode = BlendMode.SrcIn,
+                    )
+                }
+                drawContent()
+            }
+            .background(color = backgroundColor, shape = shape)
+    }
+    @Composable
+    fun IconButtonTest() {
+
+
+
+        IconButton(
+            onClick = {},
+            content = {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .border(
+                            BorderStroke(8.dp, Color.Transparent),
+                            CircleShape
+                        )
+                        .animatedBorder(
+                            listOf(Color.White, Color.Red),
+                            Color.Transparent,
+                            shape = CircleShape,
+                            borderWidth = 10.dp
+
+                        )
+                )
+            }
+        )
+    }
+
+    @androidx.compose.ui.tooling.preview.Preview
+    @Composable
+    fun iconButtonTestPreview() {
+        IconButtonTest()
+
     }
 
 
