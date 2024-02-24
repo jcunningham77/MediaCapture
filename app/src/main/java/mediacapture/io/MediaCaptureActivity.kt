@@ -24,14 +24,7 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -84,8 +77,6 @@ import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
-import java.util.Locale
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -341,7 +332,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 || (viewState is MediaCaptureViewModel.Initialized &&
                         viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
             ) {
-                RecordButton(modifier, viewState)
+                RecordButton(modifier, viewState, isRecording)
             } else {
                 Text(
                     "Recording complete!",
@@ -430,7 +421,8 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun RecordButton(
         modifier: Modifier,
-        viewState: MediaCaptureViewModel.ViewState
+        viewState: MediaCaptureViewModel.ViewState,
+        isRecording: MutableState<Boolean>
     ) {
 
         var clickListener: () -> Unit = {}
@@ -470,8 +462,8 @@ class MediaCaptureActivity : ComponentActivity() {
                             listOf(Color.White, Color.Red),
                             Color.Transparent,
                             shape = CircleShape,
-                            borderWidth = 10.dp
-
+                            borderWidth = 10.dp,
+                            isRecording = isRecording
                         )
                 )
             }
@@ -484,25 +476,19 @@ class MediaCaptureActivity : ComponentActivity() {
         backgroundColor: Color,
         shape: Shape = RectangleShape,
         borderWidth: Dp = 1.dp,
-        animationDurationInMillis: Int = 1000,
-        easing: Easing = LinearEasing
+        isRecording: MutableState<Boolean>,// TODO rename this more generic
     ): Modifier {
         val brush = Brush.sweepGradient(borderColors)
-        val infiniteTransition = rememberInfiniteTransition(label = "animatedBorder")
-        val angle by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 360f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = animationDurationInMillis, easing = easing),
-                repeatMode = RepeatMode.Restart
-            ), label = "angleAnimation"
+        val angleNonInfinite: Float by animateFloatAsState(
+            if (isRecording.value) 90f else 0.0f,
+            label = "angleNonInfinite"
         )
 
         return this
             .clip(shape)
             .padding(borderWidth)
             .drawWithContent {
-                rotate(angle) {
+                rotate(angleNonInfinite) {
                     drawCircle(
                         brush = brush,
                         radius = size.width,
@@ -513,9 +499,9 @@ class MediaCaptureActivity : ComponentActivity() {
             }
             .background(color = backgroundColor, shape = shape)
     }
+
     @Composable
     fun IconButtonTest() {
-
 
 
         IconButton(
@@ -534,8 +520,8 @@ class MediaCaptureActivity : ComponentActivity() {
                             listOf(Color.White, Color.Red),
                             Color.Transparent,
                             shape = CircleShape,
-                            borderWidth = 10.dp
-
+                            borderWidth = 10.dp,
+                            isRecording = isRecording,
                         )
                 )
             }
@@ -592,7 +578,7 @@ class MediaCaptureActivity : ComponentActivity() {
     // endregion composable
 
     // TODO Locale/18n?
-    private fun Long.formatForElapsedTimeView():String {
+    private fun Long.formatForElapsedTimeView(): String {
         Log.i(TAG, "JEFFREYCUNNINGHAM: formatForElapsedTimeView: this = $this")
         val duration = this.toDuration(DurationUnit.SECONDS)
         return duration.toComponents { minutes, seconds, _ ->
