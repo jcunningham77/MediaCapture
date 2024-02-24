@@ -61,7 +61,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.painter.BrushPainter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -459,8 +461,8 @@ class MediaCaptureActivity : ComponentActivity() {
                             CircleShape
                         )
                         .animatedBorder(
-                            listOf(Color.White, Color.Red),
-                            Color.Transparent,
+                            listOf(Color.Red),
+                            Color.Blue,
                             shape = CircleShape,
                             borderWidth = 10.dp,
                             isRecording = isRecording
@@ -478,7 +480,16 @@ class MediaCaptureActivity : ComponentActivity() {
         borderWidth: Dp = 1.dp,
         isRecording: MutableState<Boolean>,// TODO rename this more generic
     ): Modifier {
-        val brush = Brush.sweepGradient(borderColors)
+
+        val brush = if (borderColors.size>1) {
+            Brush.sweepGradient(borderColors)
+        } else {
+            SolidColor(borderColors[0])
+        }
+
+
+
+
         val angleNonInfinite: Float by animateFloatAsState(
             if (isRecording.value) 90f else 0.0f,
             label = "angleNonInfinite"
@@ -497,43 +508,43 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
                 drawContent()
             }
-            .background(color = backgroundColor, shape = shape)
+//            .background(color = backgroundColor, shape = shape)
     }
 
-    @Composable
-    fun IconButtonTest() {
-
-
-        IconButton(
-            onClick = {},
-            content = {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .border(
-                            BorderStroke(8.dp, Color.Transparent),
-                            CircleShape
-                        )
-                        .animatedBorder(
-                            listOf(Color.White, Color.Red),
-                            Color.Transparent,
-                            shape = CircleShape,
-                            borderWidth = 10.dp,
-                            isRecording = isRecording,
-                        )
-                )
-            }
-        )
-    }
-
-    @androidx.compose.ui.tooling.preview.Preview
-    @Composable
-    fun iconButtonTestPreview() {
-        IconButtonTest()
-
-    }
+//    @Composable
+//    fun IconButtonTest() {
+//
+//
+//        IconButton(
+//            onClick = {},
+//            content = {
+//                Image(
+//                    painter = painterResource(id = R.drawable.baseline_fiber_manual_record_24),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .border(
+//                            BorderStroke(8.dp, Color.Transparent),
+//                            CircleShape
+//                        )
+//                        .animatedBorder(
+//                            listOf(Color.White, Color.Red),
+//                            Color.Transparent,
+//                            shape = CircleShape,
+//                            borderWidth = 10.dp,
+//                            isRecording = isRecording,
+//                        )
+//                )
+//            }
+//        )
+//    }
+//
+//    @androidx.compose.ui.tooling.preview.Preview
+//    @Composable
+//    fun iconButtonTestPreview() {
+//        IconButtonTest()
+//
+//    }
 
 
     @Composable
