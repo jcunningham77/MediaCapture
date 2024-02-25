@@ -26,10 +26,8 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -38,11 +36,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,10 +66,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
-import java.util.Locale
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -84,6 +82,8 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     private var isRecording = mutableStateOf(false)
+
+    private  val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> = mutableStateOf(MediaCaptureViewModel.PendingInitialization)
 
     // region camera x members
     private var recording: Recording? = null
@@ -252,9 +252,11 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-            setContent {
-                ConstraintLayoutContent(it, this)
-            }
+            mutableViewState.value = it
+        }
+
+        setContent {
+            ConstraintLayoutContent(mutableViewState, this)
         }
     }
     // endregion activity lifecycle
@@ -262,13 +264,14 @@ class MediaCaptureActivity : ComponentActivity() {
     // region composable
     @Composable
     fun ConstraintLayoutContent(
-        viewState: MediaCaptureViewModel.ViewState,
+        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
         activity: ComponentActivity,
     ) {
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            val viewState = mutableViewState.value
             val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef, elapsedTimeRef) = createRefs()
 
             val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
@@ -326,7 +329,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 || (viewState is MediaCaptureViewModel.Initialized &&
                         viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
             ) {
-                RecordButton(modifier, viewState)
+                RecordButton(modifier, mutableViewState)
             } else {
                 Text(
                     "Recording complete!",
@@ -415,8 +418,10 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun RecordButton(
         modifier: Modifier,
-        viewState: MediaCaptureViewModel.ViewState
+        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
     ) {
+
+        val viewState = mutableViewState.value
 
         var clickListener: () -> Unit = {}
         var drawableInt = 0
@@ -435,7 +440,7 @@ class MediaCaptureActivity : ComponentActivity() {
             enabled = true
         }
 
-        IconButton(
+        val iconButton = IconButton(
             onClick = clickListener,
             modifier = modifier,
             enabled = enabled,
@@ -445,36 +450,37 @@ class MediaCaptureActivity : ComponentActivity() {
                     contentDescription = null,
                     modifier = modifier
                         .size(100.dp)
-                        .border(
-                            BorderStroke(4.dp, Color.Transparent),
-                            CircleShape
-                        )
-                        .border(
-                            BorderStroke(4.dp, Color.White),
-                            CircleShape
-                        )
+
                 )
             }
         )
+
+        if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: RecordButton: RecordingState.RECORDING")
+            CircularProgressIndicator(
+                modifier = Modifier.width(64.dp),
+                color = MaterialTheme.colorScheme.secondary,
+            )
+//            Box(modifier = modifier) {
+//
+//                iconButton
+//
+//            }
+        } else {
+            iconButton
+        }
+
+
     }
 
 
     @Composable
     fun ElapsedTimeView(modifier: Modifier, isRecording: MutableState<Boolean>) {
-
         var elapsedTime by remember {
             mutableStateOf(0L)
         }
         LaunchedEffect(key1 = isRecording.value, block = {
-            Log.i(
-                TAG,
-                "JEFFREYCUNNINGHAM: ElapsedTimeView: LaunchedEffect isRecording: ${isRecording.value}"
-            )
             while (isRecording.value) {
-                Log.i(
-                    TAG,
-                    "JEFFREYCUNNINGHAM: ElapsedTimeView: LaunchedEffect isRecording: ${isRecording.value}, incrementing elasped seconds"
-                )
                 elapsedTime++
                 delay(1000)
             }
@@ -501,7 +507,7 @@ class MediaCaptureActivity : ComponentActivity() {
     // endregion composable
 
     // TODO Locale/18n?
-    private fun Long.formatForElapsedTimeView():String {
+    private fun Long.formatForElapsedTimeView(): String {
         Log.i(TAG, "JEFFREYCUNNINGHAM: formatForElapsedTimeView: this = $this")
         val duration = this.toDuration(DurationUnit.SECONDS)
         return duration.toComponents { minutes, seconds, _ ->
