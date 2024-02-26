@@ -36,12 +36,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,7 +64,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
-import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
 import kotlin.time.DurationUnit
@@ -79,11 +76,13 @@ class MediaCaptureActivity : ComponentActivity() {
 
     companion object {
         const val VIDEO_URI = "video.uri"
+        const val VIDEO_MAX_LENGTH = 60
     }
 
     private var isRecording = mutableStateOf(false)
 
-    private  val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> = mutableStateOf(MediaCaptureViewModel.PendingInitialization)
+    private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
+        mutableStateOf(MediaCaptureViewModel.PendingInitialization)
 
     // region camera x members
     private var recording: Recording? = null
@@ -440,34 +439,39 @@ class MediaCaptureActivity : ComponentActivity() {
             enabled = true
         }
 
-        val iconButton = IconButton(
-            onClick = clickListener,
-            modifier = modifier,
-            enabled = enabled,
-            content = {
-                Image(
-                    painter = painterResource(id = drawableInt),
-                    contentDescription = null,
-                    modifier = modifier
-                        .size(100.dp)
+        Box(modifier) {
+            IconButton(
+                onClick = clickListener,
+                modifier = modifier,
+                enabled = enabled,
+                content = {
+                    Image(
+                        painter = painterResource(id = drawableInt),
+                        contentDescription = null,
+                        modifier = modifier
+                            .size(100.dp)
 
+                    )
+                }
+            )
+            if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
+                var progress by remember {
+                    mutableStateOf(0f)
+                }
+
+                LaunchedEffect(key1 = true, block = {
+                    var elapsedSeconds = 0
+                    while (true) {
+                        elapsedSeconds++
+                        progress = elapsedSeconds / VIDEO_MAX_LENGTH.toFloat()
+                        delay(1000)
+                    }
+                })
+                CircularProgressIndicator(
+                    color = Color.Red, modifier = modifier,
+                    progress = progress
                 )
             }
-        )
-
-        if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
-            Log.i(TAG, "JEFFREYCUNNINGHAM: RecordButton: RecordingState.RECORDING")
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.secondary,
-            )
-//            Box(modifier = modifier) {
-//
-//                iconButton
-//
-//            }
-        } else {
-            iconButton
         }
 
 
