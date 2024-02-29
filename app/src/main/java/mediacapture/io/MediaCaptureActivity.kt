@@ -271,8 +271,7 @@ class MediaCaptureActivity : ComponentActivity() {
             }
             when (viewState) {
                 is MediaCaptureViewModel.PendingInitialization -> {
-                    LoadingIndicator(layoutModifier = previewModifier, context = null)
-
+                    CircularProgressIndicator(previewModifier.size(200.dp))
                 }
 
                 is MediaCaptureViewModel.Initialized -> {
@@ -365,14 +364,6 @@ class MediaCaptureActivity : ComponentActivity() {
             )
         }
     }
-
-    @Composable
-    fun LoadingIndicator(layoutModifier: Modifier, context: Context?) {
-        if (context == null) {
-            CircularProgressIndicator(layoutModifier.size(200.dp))
-        }
-    }
-
 
     @Composable
     fun RecordButton(
