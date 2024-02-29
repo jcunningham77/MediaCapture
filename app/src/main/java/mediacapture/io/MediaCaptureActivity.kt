@@ -30,15 +30,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -67,8 +63,7 @@ import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import mediacapture.io.ui.composables.ElapsedTimeView
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
@@ -87,7 +82,6 @@ class MediaCaptureActivity : ComponentActivity() {
     // region camera x members
     private var recording: Recording? = null
     private var pendingRecording: PendingRecording? = null
-
 
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
         return Consumer<VideoRecordEvent> { event ->
@@ -284,7 +278,6 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
 
                 is MediaCaptureViewModel.Initialized -> {
-
                     CameraPreview(
                         viewState,
                         activity
@@ -474,47 +467,8 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
 
-    @Composable
-    fun ElapsedTimeView(
-        layoutModifier: Modifier,
-        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
-    ) {
-        var elapsedTime by remember {
-            mutableStateOf(0L)
-        }
-        LaunchedEffect(key1 = mutableViewState.value, block = {
-            val viewState = mutableViewState.value
-            while (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
-                elapsedTime++
-                delay(1000)
-            }
-        })
-
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = layoutModifier
-                .wrapContentWidth()
-                .defaultMinSize(60.dp)
-                .height(20.dp)
-                .background(
-                    color = Color(R.color.black_40),
-                    shape = RoundedCornerShape(60.dp)
-                ),
-        ) {
-            Text(
-                text = elapsedTime.formatForElapsedTimeView(),
-                color = Color.White,
-                fontSize = TextUnit(14f, TextUnitType.Sp)
-            )
-        }
-    }
     // endregion composable
 
     // TODO Locale/18n?
-    private fun Long.formatForElapsedTimeView(): String {
-        val duration = this.toDuration(DurationUnit.SECONDS)
-        return duration.toComponents { minutes, seconds, _ ->
-            "%02d:%02d".format(minutes, seconds)
-        }
-    }
+
 }
