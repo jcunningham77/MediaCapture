@@ -25,8 +25,6 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -47,7 +45,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -64,6 +61,7 @@ import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.composables.ElapsedTimeView
+import mediacapture.io.ui.composables.FlipCameraButton
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
@@ -303,7 +301,7 @@ class MediaCaptureActivity : ComponentActivity() {
                         end.linkTo(recordButtonRef.start)
                     }
                     .size(40.dp, 40.dp)
-            )
+            ) { viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent) }
 
             // record button
             val recordButtonLayoutModifier = Modifier
@@ -375,33 +373,6 @@ class MediaCaptureActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun FlipCameraButton(layoutModifier: Modifier) {
-
-        var animationTrigger by remember {
-            mutableStateOf(false)
-        }
-        val angle by animateFloatAsState(
-            targetValue = if (animationTrigger) 360f else 0f,
-            animationSpec = tween(500),
-            label = "Rotation Angle"
-        )
-
-        IconButton(onClick = {
-            viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
-            animationTrigger = !animationTrigger
-        }, modifier = layoutModifier,
-            content = {
-                Image(
-                    painterResource(id = R.drawable.baseline_flip_camera_android_24),
-                    contentDescription = null,
-                    modifier = layoutModifier
-                        .size(100.dp)
-                        .rotate(angle)
-                )
-            }
-        )
-    }
 
     @Composable
     fun RecordButton(
