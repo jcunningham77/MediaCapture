@@ -1,6 +1,7 @@
 package mediacapture.io
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
@@ -69,6 +70,7 @@ import mediacapture.io.livedata.observe
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+@SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     private lateinit var viewModel: MediaCaptureViewModel
@@ -78,8 +80,6 @@ class MediaCaptureActivity : ComponentActivity() {
         const val VIDEO_URI = "video.uri"
         const val VIDEO_MAX_LENGTH = 60
     }
-
-    private var isRecording = mutableStateOf(false)
 
     private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
         mutableStateOf(MediaCaptureViewModel.PendingInitialization)
@@ -243,11 +243,9 @@ class MediaCaptureActivity : ComponentActivity() {
             if (it is MediaCaptureViewModel.Initialized) {
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
                     startRecording()
-                    isRecording.value = true
                 }
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED) {
                     stopRecording()
-                    isRecording.value = false
                 }
             }
 
@@ -301,7 +299,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     end.linkTo(parent.end)
 
                 }
-                .padding(10.dp), isRecording)
+                .padding(10.dp), mutableViewState)
 
             FlipCameraButton(
                 Modifier
@@ -377,14 +375,12 @@ class MediaCaptureActivity : ComponentActivity() {
         }
     }
 
-
     @Composable
     fun LoadingIndicator(layoutModifier: Modifier, context: Context?) {
         if (context == null) {
             CircularProgressIndicator(layoutModifier.size(200.dp))
         }
     }
-
 
     @Composable
     fun FlipCameraButton(layoutModifier: Modifier) {
@@ -479,12 +475,16 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     @Composable
-    fun ElapsedTimeView(layoutModifier: Modifier, isRecording: MutableState<Boolean>) {
+    fun ElapsedTimeView(
+        layoutModifier: Modifier,
+        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
+    ) {
         var elapsedTime by remember {
             mutableStateOf(0L)
         }
-        LaunchedEffect(key1 = isRecording.value, block = {
-            while (isRecording.value) {
+        LaunchedEffect(key1 = mutableViewState.value, block = {
+            val viewState = mutableViewState.value
+            while (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
                 elapsedTime++
                 delay(1000)
             }
@@ -512,7 +512,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     // TODO Locale/18n?
     private fun Long.formatForElapsedTimeView(): String {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: formatForElapsedTimeView: this = $this")
         val duration = this.toDuration(DurationUnit.SECONDS)
         return duration.toComponents { minutes, seconds, _ ->
             "%02d:%02d".format(minutes, seconds)
