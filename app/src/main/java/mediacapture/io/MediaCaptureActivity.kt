@@ -281,7 +281,7 @@ class MediaCaptureActivity : ComponentActivity() {
             }
             when (viewState) {
                 is MediaCaptureViewModel.PendingInitialization -> {
-                    LoadingIndicator(modifier = previewModifier, context = null)
+                    LoadingIndicator(layoutModifier = previewModifier, context = null)
 
                 }
 
@@ -294,7 +294,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-            ElapsedTimeView(modifier = Modifier
+            ElapsedTimeView(layoutModifier = Modifier
                 .constrainAs(elapsedTimeRef) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
@@ -315,7 +315,7 @@ class MediaCaptureActivity : ComponentActivity() {
             )
 
             // record button
-            val modifier = Modifier
+            val recordButtonLayoutModifier = Modifier
                 .constrainAs(recordButtonRef) {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(parent.start)
@@ -328,11 +328,11 @@ class MediaCaptureActivity : ComponentActivity() {
                 || (viewState is MediaCaptureViewModel.Initialized &&
                         viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
             ) {
-                RecordButton(modifier, mutableViewState)
+                RecordButton(recordButtonLayoutModifier, mutableViewState)
             } else {
                 Text(
                     "Recording complete!",
-                    modifier = modifier,
+                    modifier = recordButtonLayoutModifier,
                     color = colorResource(R.color.white),
                     fontSize = TextUnit(20f, TextUnitType.Sp),
                     textAlign = TextAlign.Center
@@ -379,15 +379,15 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     @Composable
-    fun LoadingIndicator(modifier: Modifier, context: Context?) {
+    fun LoadingIndicator(layoutModifier: Modifier, context: Context?) {
         if (context == null) {
-            CircularProgressIndicator(modifier.size(200.dp))
+            CircularProgressIndicator(layoutModifier.size(200.dp))
         }
     }
 
 
     @Composable
-    fun FlipCameraButton(modifier: Modifier) {
+    fun FlipCameraButton(layoutModifier: Modifier) {
 
         var animationTrigger by remember {
             mutableStateOf(false)
@@ -401,12 +401,12 @@ class MediaCaptureActivity : ComponentActivity() {
         IconButton(onClick = {
             viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
             animationTrigger = !animationTrigger
-        }, modifier = modifier,
+        }, modifier = layoutModifier,
             content = {
                 Image(
                     painterResource(id = R.drawable.baseline_flip_camera_android_24),
                     contentDescription = null,
-                    modifier = modifier
+                    modifier = layoutModifier
                         .size(100.dp)
                         .rotate(angle)
                 )
@@ -416,7 +416,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
     @Composable
     fun RecordButton(
-        modifier: Modifier,
+        layoutModifier: Modifier,
         mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
     ) {
 
@@ -439,16 +439,16 @@ class MediaCaptureActivity : ComponentActivity() {
             enabled = true
         }
 
-        Box(modifier) {
+        Box(layoutModifier) {
             IconButton(
                 onClick = clickListener,
-                modifier = modifier,
+                modifier = layoutModifier,
                 enabled = enabled,
                 content = {
                     Image(
                         painter = painterResource(id = drawableInt),
                         contentDescription = null,
-                        modifier = modifier
+                        modifier = layoutModifier
                             .size(100.dp)
 
                     )
@@ -468,7 +468,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     }
                 })
                 CircularProgressIndicator(
-                    color = Color.Red, modifier = modifier,
+                    color = Color.Red, modifier = layoutModifier,
                     progress = progress
                 )
             }
@@ -479,7 +479,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     @Composable
-    fun ElapsedTimeView(modifier: Modifier, isRecording: MutableState<Boolean>) {
+    fun ElapsedTimeView(layoutModifier: Modifier, isRecording: MutableState<Boolean>) {
         var elapsedTime by remember {
             mutableStateOf(0L)
         }
@@ -492,7 +492,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
         Box(
             contentAlignment = Alignment.Center,
-            modifier = modifier
+            modifier = layoutModifier
                 .wrapContentWidth()
                 .defaultMinSize(60.dp)
                 .height(20.dp)
