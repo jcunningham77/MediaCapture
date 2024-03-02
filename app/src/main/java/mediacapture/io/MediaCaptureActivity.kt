@@ -8,7 +8,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -46,7 +45,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -57,9 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -76,7 +72,6 @@ import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.composables.ElapsedTimeView
 import mediacapture.io.ui.composables.FlipCameraButton
-import java.io.File
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
@@ -92,7 +87,7 @@ class MediaCaptureActivity : ComponentActivity() {
     private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
         mutableStateOf(MediaCaptureViewModel.PendingInitialization)
 
-    private val mutableVideoListState: MutableState<List<Video>> =
+    private val mutableMediaListState: MutableState<List<Media>> =
         mutableStateOf(emptyList())
 
     // region camera x members
@@ -263,10 +258,10 @@ class MediaCaptureActivity : ComponentActivity() {
             mutableViewState.value = it
         }
 
-        mutableVideoListState.value = retrieveRecentMedia()
+        mutableMediaListState.value = retrieveRecentMedia()
 
         setContent {
-            ConstraintLayoutContent(mutableViewState, mutableVideoListState, this)
+            ConstraintLayoutContent(mutableViewState, mutableMediaListState, this)
         }
     }
     // endregion activity lifecycle
@@ -275,7 +270,7 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun ConstraintLayoutContent(
         mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
-        mutableMediaList: MutableState<List<Video>>,
+        mutableMediaList: MutableState<List<Media>>,
         activity: ComponentActivity,
     ) {
         ConstraintLayout(
@@ -476,7 +471,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
     // endregion composable
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun retrieveRecentMedia(): List<Video> {
+    private fun retrieveRecentMedia(): List<Media> {
 
         val contentResolver = application.contentResolver
         val projection = arrayOf(
@@ -486,7 +481,7 @@ class MediaCaptureActivity : ComponentActivity() {
             MediaStore.Video.Media.SIZE
         )
 
-        val videoList = mutableListOf<Video>()
+        val mediaList = mutableListOf<Media>()
 
         contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
@@ -522,17 +517,17 @@ class MediaCaptureActivity : ComponentActivity() {
                         contentUri, Size(640, 480), null
                     )
 
-                videoList += Video(contentUri, thumbnail, name, duration, size)
+                mediaList += Media(contentUri, thumbnail, name, duration, size)
             }
 
-            videoList.forEach {
+            mediaList.forEach {
                 Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM video collected = $it")
             }
         }
-        return videoList
+        return mediaList
     }
 
-    data class Video(
+    data class Media(
         val uri: Uri,
         val thumbnailUri: Bitmap? = null,
         val name: String,
