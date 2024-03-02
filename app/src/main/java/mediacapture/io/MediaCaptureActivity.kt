@@ -43,6 +43,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -339,13 +340,25 @@ class MediaCaptureActivity : ComponentActivity() {
                 .padding(5.dp)
                 .height(100.dp)
 
-            if (mutableMediaList.value.isNotEmpty()){
+            if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
                     items(mutableMediaList.value) {
-                        it.thumbnailUri?.let {thumbnail->
-                            Image(bitmap = thumbnail.asImageBitmap(),"Thumbnail" )
+                        it.thumbnailUri?.let { thumbnail ->
+                            if (it.mediaType == MediaType.VIDEO) {
+                                Box() {
+                                    Image(bitmap = thumbnail.asImageBitmap(), "Thumbnail")
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.baseline_videocam_24),
+                                        contentDescription = "VideoType",
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(end = 5.dp),
+                                    )
+                                }
+                            }
+
                         } ?: run {
-                            Text(text = "Thumbnail unavailable" )
+                            Text(text = "Thumbnail unavailable")
                         }
                     }
                 }
@@ -533,6 +546,9 @@ class MediaCaptureActivity : ComponentActivity() {
         val name: String,
         val duration: Int,
         val size: Int,
+        val mediaType: MediaType = MediaType.VIDEO
     )
+
+    enum class MediaType { VIDEO, PHOTO }
 
 }
