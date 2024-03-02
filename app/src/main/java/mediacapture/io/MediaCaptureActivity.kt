@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -68,6 +69,7 @@ import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
 import mediacapture.io.ui.composables.ElapsedTimeView
 import mediacapture.io.ui.composables.FlipCameraButton
+import java.io.File
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
@@ -445,6 +447,7 @@ class MediaCaptureActivity : ComponentActivity() {
     // endregion composable
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun retrieveRecentMedia(): List<Video> {
+
         val contentResolver = application.contentResolver
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
@@ -483,10 +486,10 @@ class MediaCaptureActivity : ComponentActivity() {
                     id
                 )
 
-                val thumbnail = ThumbnailUtils.createAudioThumbnail(
-                    contentUri.toString(),
-                    MediaStore.Images.Thumbnails.MINI_KIND
-                )
+
+                val thumbnail: Bitmap =
+                    applicationContext.contentResolver.loadThumbnail(
+                        contentUri, Size(640, 480), null)
 
                 videoList += Video(contentUri, thumbnail, name, duration, size)
             }
