@@ -3,15 +3,21 @@ package mediacapture.io
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.media.ThumbnailUtils
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -76,6 +82,9 @@ class MediaCaptureActivity : ComponentActivity() {
 
     private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
         mutableStateOf(MediaCaptureViewModel.PendingInitialization)
+
+    private val mutableVideoListState: MutableState<List<Video>> =
+        mutableStateOf(emptyList())
 
     // region camera x members
     private var recording: Recording? = null
@@ -227,6 +236,7 @@ class MediaCaptureActivity : ComponentActivity() {
         }.launch(Manifest.permission.RECORD_AUDIO)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onResume() {
         super.onResume()
 
@@ -244,8 +254,10 @@ class MediaCaptureActivity : ComponentActivity() {
             mutableViewState.value = it
         }
 
+        mutableVideoListState.value = retrieveRecentMedia()
+
         setContent {
-            ConstraintLayoutContent(mutableViewState, this)
+            ConstraintLayoutContent(mutableViewState, mutableVideoListState, this)
         }
     }
     // endregion activity lifecycle
@@ -254,6 +266,7 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun ConstraintLayoutContent(
         mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
+        mutableMediaList: MutableState<List<Video>>,
         activity: ComponentActivity,
     ) {
         ConstraintLayout(
@@ -430,7 +443,67 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     // endregion composable
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun retrieveRecentMedia(): List<Video> {
+        val contentResolver = application.contentResolver
+        val projection = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.DISPLAY_NAME,
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.SIZE
+        )
 
-    // TODO Locale/18n?
+        val videoList = mutableListOf<Video>()
+
+        contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            null
+        )?.use { cursor ->
+            // Cache column indices.
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val nameColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val durationColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+
+
+            while (cursor.moveToNext()) {
+                // Get values of columns for a given video.
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getString(nameColumn)
+                val duration = cursor.getInt(durationColumn)
+                val size = cursor.getInt(sizeColumn)
+
+                val contentUri: Uri = ContentUris.withAppendedId(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+
+                val thumbnail = ThumbnailUtils.createAudioThumbnail(
+                    contentUri.toString(),
+                    MediaStore.Images.Thumbnails.MINI_KIND
+                )
+
+                videoList += Video(contentUri, thumbnail, name, duration, size)
+            }
+
+            videoList.forEach {
+                Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM video collected = $it")
+            }
+        }
+        return videoList
+    }
+
+    data class Video(
+        val uri: Uri,
+        val thumbnailUri: Bitmap? = null,
+        val name: String,
+        val duration: Int,
+        val size: Int,
+    )
 
 }
