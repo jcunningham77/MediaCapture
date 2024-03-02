@@ -38,11 +38,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -53,6 +57,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -276,7 +283,8 @@ class MediaCaptureActivity : ComponentActivity() {
                 .fillMaxSize()
         ) {
             val viewState = mutableViewState.value
-            val (previewSurfaceRef, flipCameraButtonRef, recordButtonRef, elapsedTimeRef) = createRefs()
+            val (previewSurfaceRef, thumbGalleryRef, flipCameraButtonRef, recordButtonRef, elapsedTimeRef) = createRefs()
+
 
             val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
                 top.linkTo(parent.top)
@@ -327,6 +335,28 @@ class MediaCaptureActivity : ComponentActivity() {
                 .padding(10.dp)
                 .size(100.dp, 100.dp)
 
+            val thumbGalleryLayoutModifier = Modifier
+                .constrainAs(thumbGalleryRef) {
+                    bottom.linkTo(recordButtonRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
+                .padding(5.dp)
+                .height(100.dp)
+
+            if (mutableMediaList.value.isNotEmpty()){
+                LazyRow(modifier = thumbGalleryLayoutModifier) {
+                    items(mutableMediaList.value) {
+                        it.thumbnailUri?.let {thumbnail->
+                            Image(bitmap = thumbnail.asImageBitmap(),"Thumbnail" )
+                        } ?: run {
+                            Text(text = "Thumbnail unavailable" )
+                        }
+                    }
+                }
+            }
+
+
             if (viewState is MediaCaptureViewModel.PendingInitialization
                 || (viewState is MediaCaptureViewModel.Initialized &&
                         viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
@@ -374,7 +404,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .fillMaxHeight(.20F)
+                    .fillMaxHeight(.30F)
                     .background(colorResource(id = R.color.black_40))
             )
         }
@@ -489,7 +519,8 @@ class MediaCaptureActivity : ComponentActivity() {
 
                 val thumbnail: Bitmap =
                     applicationContext.contentResolver.loadThumbnail(
-                        contentUri, Size(640, 480), null)
+                        contentUri, Size(640, 480), null
+                    )
 
                 videoList += Video(contentUri, thumbnail, name, duration, size)
             }
