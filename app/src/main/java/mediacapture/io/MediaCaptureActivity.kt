@@ -496,12 +496,14 @@ class MediaCaptureActivity : ComponentActivity() {
 
         val mediaList = mutableListOf<Media>()
 
+        val orderBy = MediaStore.Video.Media.DATE_TAKEN
+        val sortByParam = "$orderBy DESC"
         contentResolver.query(
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
             projection,
             null,
             null,
-            null
+            sortByParam,
         )?.use { cursor ->
             // Cache column indices.
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
