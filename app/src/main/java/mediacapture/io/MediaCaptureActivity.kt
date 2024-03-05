@@ -57,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -338,15 +339,21 @@ class MediaCaptureActivity : ComponentActivity() {
                     end.linkTo(parent.end)
                 }
                 .padding(5.dp)
-                .height(100.dp)
+                .height(75.dp)
 
             if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
                     items(mutableMediaList.value) {
                         it.thumbnailUri?.let { thumbnail ->
                             if (it.mediaType == MediaType.VIDEO) {
-                                Box() {
-                                    Image(bitmap = thumbnail.asImageBitmap(), "Thumbnail")
+                                Box {
+                                    Image(
+                                        modifier = Modifier.padding(horizontal = 2.dp).size(75.dp),
+                                        bitmap = thumbnail.asImageBitmap(),
+                                        contentDescription = "Thumbnail",
+                                        contentScale = ContentScale.Crop,
+
+                                    )
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_videocam_24),
                                         contentDescription = "VideoType",
@@ -355,6 +362,8 @@ class MediaCaptureActivity : ComponentActivity() {
                                             .padding(end = 5.dp),
                                     )
                                 }
+                            } else {
+                                Image(bitmap = thumbnail.asImageBitmap(), "Thumbnail")
                             }
 
                         } ?: run {
@@ -526,7 +535,6 @@ class MediaCaptureActivity : ComponentActivity() {
                     id
                 )
 
-
                 val thumbnail: Bitmap =
                     applicationContext.contentResolver.loadThumbnail(
                         contentUri, Size(640, 480), null
@@ -552,5 +560,4 @@ class MediaCaptureActivity : ComponentActivity() {
     )
 
     enum class MediaType { VIDEO, PHOTO }
-
 }
