@@ -3,7 +3,6 @@ package mediacapture.io
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
@@ -13,7 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.util.Size
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -118,6 +117,15 @@ class MediaCaptureActivity : ComponentActivity() {
                             TAG,
                             "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
                         )
+
+                        val text = "Video captured successfully!"
+                        val duration = Toast.LENGTH_SHORT
+
+                        val toast = Toast.makeText(this, text, duration)
+                        toast.show()
+
+                        viewModel.triggerMediaQuery()
+
 
                     } else {
                         Log.i(
@@ -260,7 +268,10 @@ class MediaCaptureActivity : ComponentActivity() {
             mutableViewState.value = it
         }
 
-        mutableMediaListState.value = retrieveRecentMedia()
+        viewModel.existingMedia.observe(this) {
+            mutableMediaListState.value = it
+        }
+        viewModel.triggerMediaQuery()
 
         setContent {
             ConstraintLayoutContent(mutableViewState, mutableMediaListState, this)
@@ -348,12 +359,14 @@ class MediaCaptureActivity : ComponentActivity() {
                             if (it.mediaType == MediaType.VIDEO) {
                                 Box {
                                     Image(
-                                        modifier = Modifier.padding(horizontal = 2.dp).size(75.dp),
+                                        modifier = Modifier
+                                            .padding(horizontal = 2.dp)
+                                            .size(75.dp),
                                         bitmap = thumbnail.asImageBitmap(),
                                         contentDescription = "Thumbnail",
                                         contentScale = ContentScale.Crop,
 
-                                    )
+                                        )
                                     Icon(
                                         painter = painterResource(id = R.drawable.baseline_videocam_24),
                                         contentDescription = "VideoType",
@@ -490,65 +503,7 @@ class MediaCaptureActivity : ComponentActivity() {
 
     }
 
-
     // endregion composable
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun retrieveRecentMedia(): List<Media> {
-
-        val contentResolver = application.contentResolver
-        val projection = arrayOf(
-            MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.DISPLAY_NAME,
-            MediaStore.Video.Media.DURATION,
-            MediaStore.Video.Media.SIZE
-        )
-
-        val mediaList = mutableListOf<Media>()
-
-        val orderBy = MediaStore.Video.Media.DATE_TAKEN
-        val sortByParam = "$orderBy DESC"
-        contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortByParam,
-        )?.use { cursor ->
-            // Cache column indices.
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val durationColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-
-
-            while (cursor.moveToNext()) {
-                // Get values of columns for a given video.
-                val id = cursor.getLong(idColumn)
-                val name = cursor.getString(nameColumn)
-                val duration = cursor.getInt(durationColumn)
-                val size = cursor.getInt(sizeColumn)
-
-                val contentUri: Uri = ContentUris.withAppendedId(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    id
-                )
-
-                val thumbnail: Bitmap =
-                    applicationContext.contentResolver.loadThumbnail(
-                        contentUri, Size(640, 480), null
-                    )
-
-                mediaList += Media(contentUri, thumbnail, name, duration, size)
-            }
-
-            mediaList.forEach {
-                Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM video collected = $it")
-            }
-        }
-        return mediaList
-    }
 
     data class Media(
         val uri: Uri,

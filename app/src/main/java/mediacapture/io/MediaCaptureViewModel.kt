@@ -2,7 +2,14 @@ package mediacapture.io
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.ContentUris
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
+import androidx.annotation.RequiresApi
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -11,7 +18,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -102,6 +108,84 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
 
     // endregion user events
+
+
+    // region MediaStore
+
+    private val triggerMediaQuerySubject= PublishSubject.create<Unit>()
+
+    fun triggerMediaQuery() {
+        triggerMediaQuerySubject.onNext(Unit)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    val existingMedia: Observable<List<MediaCaptureActivity.Media>> = triggerMediaQuerySubject.flatMap {
+        Observable.fromCallable {
+            retrieveRecentMedia()
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    // FIXME is this a potential memory leak?
+    private val applicationContext = application.applicationContext
+    private val contentResolver = application.contentResolver
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun retrieveRecentMedia(): List<MediaCaptureActivity.Media> {
+
+        val projection = arrayOf(
+            MediaStore.Video.Media._ID,
+            MediaStore.Video.Media.DISPLAY_NAME,
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.SIZE
+        )
+
+        val mediaList = mutableListOf<MediaCaptureActivity.Media>()
+
+        val orderBy = MediaStore.Video.Media.DATE_TAKEN
+        val sortByParam = "$orderBy DESC"
+        contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            sortByParam,
+        )?.use { cursor ->
+            // Cache column indices.
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val nameColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val durationColumn =
+                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+
+
+            while (cursor.moveToNext()) {
+                // Get values of columns for a given video.
+                val id = cursor.getLong(idColumn)
+                val name = cursor.getString(nameColumn)
+                val duration = cursor.getInt(durationColumn)
+                val size = cursor.getInt(sizeColumn)
+
+                val contentUri: Uri = ContentUris.withAppendedId(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    id
+                )
+
+                val thumbnail: Bitmap =
+                    applicationContext.contentResolver.loadThumbnail(
+                        contentUri, Size(640, 480), null
+                    )
+
+                mediaList += MediaCaptureActivity.Media(contentUri, thumbnail, name, duration, size)
+            }
+
+            mediaList.forEach {
+                Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM video collected = $it")
+            }
+        }
+        return mediaList
+    }
+    // endregion MediaStore
 
     enum class CameraFacing {
         FRONT, BACK;
