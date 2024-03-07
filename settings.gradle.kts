@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MediaCapture"
 include(":app")
+include(":media-capture")
