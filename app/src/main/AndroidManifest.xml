@@ -20,7 +20,7 @@
     android:theme="@style/Theme.MediaCapture"
     tools:targetApi="31">
     <activity
-      android:name="demoapp.io.MainActivity"
+      android:name=".MainActivity"
       android:exported="true"
       android:label="@string/title_activity_main"
       android:theme="@style/Theme.MediaCapture">

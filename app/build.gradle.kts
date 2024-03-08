@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "mediacapture.io"
+    namespace = "demoapp.io"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "mediacapture.io"
+        applicationId = "demoapp.io"
         minSdk = 24
         targetSdk = 33
         versionCode = 1
