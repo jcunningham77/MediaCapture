@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import mediacapture.io.MediaCaptureViewModel
 import mediacapture.io.R
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
