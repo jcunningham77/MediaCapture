@@ -83,6 +83,10 @@ class MediaCaptureActivity : ComponentActivity() {
     companion object {
         const val VIDEO_URI = "video.uri"
         const val VIDEO_MAX_LENGTH = 60
+
+        fun start() {
+
+        }
     }
 
     private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
@@ -90,150 +94,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     private val mutableMediaListState: MutableState<List<Media>> =
         mutableStateOf(emptyList())
-
-    // region camera x members
-    private var recording: Recording? = null
-    private var pendingRecording: PendingRecording? = null
-
-    private fun createRecordingListener(): Consumer<VideoRecordEvent> {
-        return Consumer<VideoRecordEvent> { event ->
-            when (event) {
-                is VideoRecordEvent.Start -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture begins:")
-                }
-
-                is VideoRecordEvent.Finalize -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
-                    if (!event.hasError()) {
-                        // update app internal state
-                        Log.i(
-                            TAG,
-                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
-                        )
-                        val result = bundleOf(
-                            VIDEO_URI to event.outputResults.outputUri
-                        )
-                        Log.i(
-                            TAG,
-                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
-                        )
-
-                        val text = "Video captured successfully!"
-                        val duration = Toast.LENGTH_SHORT
-
-                        val toast = Toast.makeText(this, text, duration)
-                        toast.show()
-
-                        viewModel.triggerMediaQuery()
-
-
-                    } else {
-                        Log.i(
-                            TAG,
-                            "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
-                        )
-
-                        Log.e(
-                            TAG,
-                            event.cause?.message,
-                            event.cause
-                        )
-                        recording = null
-                    }
-                }
-
-                is VideoRecordEvent.Status -> {
-                }
-
-                is VideoRecordEvent.Pause -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture paused:")
-                }
-
-                is VideoRecordEvent.Resume -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture resume:")
-                }
-            }
-
-        }
-    }
-
-    private fun bindPreview(
-        viewState: MediaCaptureViewModel.Initialized,
-        previewView: PreviewView,
-        context: Context,
-        activity: ComponentActivity,
-
-        ): PendingRecording {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
-        val preview: Preview = Preview.Builder().build()
-        preview.setSurfaceProvider(previewView.surfaceProvider)
-
-
-        val selector = QualitySelector.from(
-            Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
-                Quality.SD
-            )
-        )
-        val recorder = Recorder.Builder().setQualitySelector(selector).build()
-        val videoCapture = VideoCapture.withOutput(recorder)
-        val cameraSelector = when (viewState.cameraFacing) {
-            MediaCaptureViewModel.CameraFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
-            MediaCaptureViewModel.CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
-        }
-        viewState.processCameraProvider.unbindAll()
-
-        camera = viewState.processCameraProvider.bindToLifecycle(
-            activity,
-            cameraSelector,
-            videoCapture,
-            preview
-        )
-
-        // todo handle the permissions more gracefully
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                (context as Activity?)!!,
-                arrayOf(Manifest.permission.RECORD_AUDIO),
-                1
-            )
-
-        }
-
-        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: camera = $camera")
-        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
-            .withAudioEnabled()
-    }
-
-    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-        }
-        return MediaStoreOutputOptions.Builder(
-            activity.application.contentResolver,
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        ).setContentValues(contentValues).build()
-    }
-
-    private fun startRecording() {
-        recording = pendingRecording!!.start(
-            ContextCompat.getMainExecutor(this.baseContext),
-            createRecordingListener()
-        )
-    }
-
-    private fun stopRecording() {
-        if (recording != null) {
-            recording!!.stop()
-        } else {
-            Log.i(TAG, "stopRecording:  recording is NULL")
-        }
-    }
-    // endregion camera x members
 
     // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -504,6 +364,150 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     // endregion composable
+
+    // region camera x members
+    private var recording: Recording? = null
+    private var pendingRecording: PendingRecording? = null
+
+    private fun createRecordingListener(): Consumer<VideoRecordEvent> {
+        return Consumer<VideoRecordEvent> { event ->
+            when (event) {
+                is VideoRecordEvent.Start -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture begins:")
+                }
+
+                is VideoRecordEvent.Finalize -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
+                    if (!event.hasError()) {
+                        // update app internal state
+                        Log.i(
+                            TAG,
+                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
+                        )
+                        val result = bundleOf(
+                            VIDEO_URI to event.outputResults.outputUri
+                        )
+                        Log.i(
+                            TAG,
+                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
+                        )
+
+                        val text = "Video captured successfully!"
+                        val duration = Toast.LENGTH_SHORT
+
+                        val toast = Toast.makeText(this, text, duration)
+                        toast.show()
+
+                        viewModel.triggerMediaQuery()
+
+
+                    } else {
+                        Log.i(
+                            TAG,
+                            "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
+                        )
+
+                        Log.e(
+                            TAG,
+                            event.cause?.message,
+                            event.cause
+                        )
+                        recording = null
+                    }
+                }
+
+                is VideoRecordEvent.Status -> {
+                }
+
+                is VideoRecordEvent.Pause -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture paused:")
+                }
+
+                is VideoRecordEvent.Resume -> {
+                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture resume:")
+                }
+            }
+
+        }
+    }
+
+    private fun bindPreview(
+        viewState: MediaCaptureViewModel.Initialized,
+        previewView: PreviewView,
+        context: Context,
+        activity: ComponentActivity,
+
+        ): PendingRecording {
+        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
+        val preview: Preview = Preview.Builder().build()
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
+
+        val selector = QualitySelector.from(
+            Quality.UHD, FallbackStrategy.higherQualityOrLowerThan(
+                Quality.SD
+            )
+        )
+        val recorder = Recorder.Builder().setQualitySelector(selector).build()
+        val videoCapture = VideoCapture.withOutput(recorder)
+        val cameraSelector = when (viewState.cameraFacing) {
+            MediaCaptureViewModel.CameraFacing.FRONT -> CameraSelector.DEFAULT_FRONT_CAMERA
+            MediaCaptureViewModel.CameraFacing.BACK -> CameraSelector.DEFAULT_BACK_CAMERA
+        }
+        viewState.processCameraProvider.unbindAll()
+
+        camera = viewState.processCameraProvider.bindToLifecycle(
+            activity,
+            cameraSelector,
+            videoCapture,
+            preview
+        )
+
+        // todo handle the permissions more gracefully
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                (context as Activity?)!!,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                1
+            )
+
+        }
+
+        Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: camera = $camera")
+        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
+            .withAudioEnabled()
+    }
+
+    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        }
+        return MediaStoreOutputOptions.Builder(
+            activity.application.contentResolver,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        ).setContentValues(contentValues).build()
+    }
+
+    private fun startRecording() {
+        recording = pendingRecording!!.start(
+            ContextCompat.getMainExecutor(this.baseContext),
+            createRecordingListener()
+        )
+    }
+
+    private fun stopRecording() {
+        if (recording != null) {
+            recording!!.stop()
+        } else {
+            Log.i(TAG, "stopRecording:  recording is NULL")
+        }
+    }
+    // endregion camera x members
 
     data class Media(
         val uri: Uri,
