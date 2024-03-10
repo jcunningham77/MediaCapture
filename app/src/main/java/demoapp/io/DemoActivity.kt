@@ -8,19 +8,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import demoapp.io.ui.theme.MediaCaptureTheme
 import mediacapture.io.MediaCaptureActivity
 
-public class MainActivity : ComponentActivity() {
+class DemoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -38,7 +33,7 @@ public class MainActivity : ComponentActivity() {
                         .padding(10.dp)
 
                     IconButton(onClick = {
-                        val intent = Intent(this@MainActivity, MediaCaptureActivity::class.java)
+                        val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
                         startActivity(intent)
                     }, modifier = cameraButtonModifier, content = {
                         Image(
