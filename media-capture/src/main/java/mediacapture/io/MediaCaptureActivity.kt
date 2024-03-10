@@ -3,6 +3,7 @@ package mediacapture.io
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
@@ -418,10 +419,7 @@ class MediaCaptureActivity : ComponentActivity() {
                         "JEFFREYCUNNINGHAM: createRecordingListener: VideoRecordEvent : $event"
                     )
                 }
-
-
             }
-
         }
     }
 
@@ -430,8 +428,7 @@ class MediaCaptureActivity : ComponentActivity() {
         previewView: PreviewView,
         context: Context,
         activity: ComponentActivity,
-
-        ): PendingRecording {
+    ): PendingRecording {
         Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: viewState: $viewState")
         val preview: Preview = Preview.Builder().build()
         preview.setSurfaceProvider(previewView.surfaceProvider)
@@ -472,20 +469,12 @@ class MediaCaptureActivity : ComponentActivity() {
         }
 
         Log.i(TAG, "JEFFREYCUNNINGHAM: bindPreview: camera = $camera")
-        return videoCapture.output.prepareRecording(context, createMediaStoreOptions(activity))
-            .withAudioEnabled()
+        return videoCapture.output.prepareRecording(
+            context,
+            activity.application.contentResolver.createMediaStoreOptionsForVideo()
+        ).withAudioEnabled()
     }
 
-    private fun createMediaStoreOptions(activity: Activity): MediaStoreOutputOptions {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-        }
-        return MediaStoreOutputOptions.Builder(
-            activity.application.contentResolver,
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-        ).setContentValues(contentValues).build()
-    }
 
     private fun startRecording() {
         recording = pendingRecording!!.start(
@@ -501,5 +490,17 @@ class MediaCaptureActivity : ComponentActivity() {
             Log.i(TAG, "stopRecording:  recording is NULL")
         }
     }
+
+    private fun ContentResolver.createMediaStoreOptionsForVideo(): MediaStoreOutputOptions {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+        }
+        return MediaStoreOutputOptions.Builder(
+            this,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        ).setContentValues(contentValues).build()
+    }
+
     // endregion camera x members
 }
