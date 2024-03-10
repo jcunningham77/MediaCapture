@@ -19,6 +19,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
+import mediacapture.io.model.Media
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -119,7 +120,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    val existingMedia: Observable<List<MediaCaptureActivity.Media>> =
+    val existingMedia: Observable<List<Media>> =
         triggerMediaQuerySubject.flatMap {
             Observable.fromCallable {
                 retrieveRecentMedia()
@@ -132,7 +133,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     private val contentResolver = application.contentResolver
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun retrieveRecentMedia(): List<MediaCaptureActivity.Media> {
+    private fun retrieveRecentMedia(): List<Media> {
 
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
@@ -141,7 +142,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             MediaStore.Video.Media.SIZE
         )
 
-        val mediaList = mutableListOf<MediaCaptureActivity.Media>()
+        val mediaList = mutableListOf<Media>()
 
         val orderBy = MediaStore.Video.Media.DATE_TAKEN
         val sortByParam = "$orderBy DESC"
@@ -178,7 +179,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                         contentUri, Size(640, 480), null
                     )
 
-                mediaList += MediaCaptureActivity.Media(contentUri, thumbnail, name, duration, size)
+                mediaList += Media(contentUri, thumbnail, name, duration, size)
             }
 
             mediaList.forEach {

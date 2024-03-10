@@ -6,8 +6,6 @@ import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -71,6 +69,8 @@ import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import mediacapture.io.livedata.observe
+import mediacapture.io.model.Media
+import mediacapture.io.model.MediaType
 import mediacapture.io.ui.composables.ElapsedTimeView
 import mediacapture.io.ui.composables.FlipCameraButton
 
@@ -502,15 +502,4 @@ class MediaCaptureActivity : ComponentActivity() {
         }
     }
     // endregion camera x members
-
-    data class Media(
-        val uri: Uri,
-        val thumbnailUri: Bitmap? = null,
-        val name: String,
-        val duration: Int,
-        val size: Int,
-        val mediaType: MediaType = MediaType.VIDEO
-    )
-
-    enum class MediaType { VIDEO, PHOTO }
 }
