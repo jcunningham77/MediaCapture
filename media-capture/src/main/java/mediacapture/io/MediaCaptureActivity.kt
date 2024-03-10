@@ -372,10 +372,6 @@ class MediaCaptureActivity : ComponentActivity() {
     private fun createRecordingListener(): Consumer<VideoRecordEvent> {
         return Consumer<VideoRecordEvent> { event ->
             when (event) {
-                is VideoRecordEvent.Start -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture begins:")
-                }
-
                 is VideoRecordEvent.Finalize -> {
                     Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
                     if (!event.hasError()) {
@@ -416,16 +412,14 @@ class MediaCaptureActivity : ComponentActivity() {
                     }
                 }
 
-                is VideoRecordEvent.Status -> {
+                else -> {
+                    Log.i(
+                        TAG,
+                        "JEFFREYCUNNINGHAM: createRecordingListener: VideoRecordEvent : $event"
+                    )
                 }
 
-                is VideoRecordEvent.Pause -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture paused:")
-                }
 
-                is VideoRecordEvent.Resume -> {
-                    Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture resume:")
-                }
             }
 
         }
