@@ -112,23 +112,25 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     // region MediaStore
 
-    private val triggerMediaQuerySubject= PublishSubject.create<Unit>()
+    private val triggerMediaQuerySubject = PublishSubject.create<Unit>()
 
     fun triggerMediaQuery() {
         triggerMediaQuerySubject.onNext(Unit)
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    val existingMedia: Observable<List<MediaCaptureActivity.Media>> = triggerMediaQuerySubject.flatMap {
-        Observable.fromCallable {
-            retrieveRecentMedia()
+    val existingMedia: Observable<List<MediaCaptureActivity.Media>> =
+        triggerMediaQuerySubject.flatMap {
+            Observable.fromCallable {
+                retrieveRecentMedia()
+            }
         }
-    }
 
     @SuppressLint("StaticFieldLeak")
     // FIXME is this a potential memory leak?
     private val applicationContext = application.applicationContext
     private val contentResolver = application.contentResolver
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun retrieveRecentMedia(): List<MediaCaptureActivity.Media> {
 

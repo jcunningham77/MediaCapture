@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import mediacapture.io.MediaCaptureViewModel
 import mediacapture.io.R
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -31,14 +30,14 @@ import kotlin.time.toDuration
 @Composable
 fun ElapsedTimeView(
     layoutModifier: Modifier,
-    mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
+    mutableViewState: MutableState<mediacapture.io.MediaCaptureViewModel.ViewState>
 ) {
     var elapsedTime by remember {
         mutableStateOf(0L)
     }
     LaunchedEffect(key1 = mutableViewState.value, block = {
         val viewState = mutableViewState.value
-        while (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
+        while (viewState is mediacapture.io.MediaCaptureViewModel.Initialized && viewState.recordingState == mediacapture.io.MediaCaptureViewModel.RecordingState.RECORDING) {
             elapsedTime++
             delay(1000)
         }
