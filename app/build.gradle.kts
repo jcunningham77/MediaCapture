@@ -64,5 +64,6 @@ dependencies {
     implementation("androidx.compose.material3:material3")
 
     implementation(project(mapOf("path" to ":media-capture")))
+    debugImplementation("androidx.compose.ui:ui-tooling:1.6.3")
 
 }

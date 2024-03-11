@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutModifier
@@ -55,16 +56,16 @@ class DemoActivity : ComponentActivity() {
 
     @Composable
     fun InputRow(modifier: Modifier = Modifier) {
-        Row(modifier.background(Color.Blue, shape = RoundedCornerShape(5))) {
+        Row(modifier.fillMaxWidth().background(Color.Blue, shape = RoundedCornerShape(10.dp,10.dp,10.dp, 10.dp))) {
             TextField(
                 value = "Enter Text here...",
                 onValueChange = {},
-                modifier = Modifier.fillMaxWidth(.80f)
+                modifier = Modifier.fillMaxWidth(.90f).padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
             )
             IconButton(onClick = {
                 val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
                 startActivity(intent)
-            }, modifier = Modifier, content = {
+            }, modifier = Modifier.align(Alignment.CenterVertically), content = {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_camera_alt_24),
                     contentDescription = "Camera Button"
