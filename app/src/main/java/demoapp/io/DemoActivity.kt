@@ -5,9 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextField
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -24,23 +27,32 @@ class DemoActivity : ComponentActivity() {
                 ConstraintLayout(modifier = Modifier.fillMaxSize()) {
 
                     val (cameraButtonRef) = createRefs()
-                    val cameraButtonModifier = Modifier
+                    val inputBoxLayoutModifier = Modifier
                         .constrainAs(cameraButtonRef) {
 
                             bottom.linkTo(parent.bottom)
                             end.linkTo(parent.end)
+                            start.linkTo(parent.start)
                         }
                         .padding(10.dp)
 
-                    IconButton(onClick = {
-                        val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
-                        startActivity(intent)
-                    }, modifier = cameraButtonModifier, content = {
-                        Image(
-                            painter = painterResource(id = R.drawable.baseline_camera_alt_24),
-                            contentDescription = "Camera Button"
+                    Row(inputBoxLayoutModifier) {
+                        TextField(
+                            value = "Enter Text here...",
+                            onValueChange = {},
+                            modifier = Modifier.fillMaxWidth(.80f)
                         )
-                    })
+                        IconButton(onClick = {
+                            val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
+                            startActivity(intent)
+                        }, modifier = inputBoxLayoutModifier, content = {
+                            Image(
+                                painter = painterResource(id = R.drawable.baseline_camera_alt_24),
+                                contentDescription = "Camera Button"
+                            )
+                        })
+                    }
+
 
                 }
             }
