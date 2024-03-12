@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.LayoutModifier
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,21 +53,41 @@ class DemoActivity : ComponentActivity() {
 
     @Composable
     fun InputRow(modifier: Modifier = Modifier) {
-        Row(modifier.fillMaxWidth().background(Color.Blue, shape = RoundedCornerShape(10.dp,10.dp,10.dp, 10.dp))) {
-            TextField(
+        Row(
+            modifier
+                .fillMaxWidth()
+                .background(Color.Green, shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp))
+        ) {
+            IconButton(onClick = {
+                val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
+                startActivity(intent)
+            }, modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .fillMaxWidth(.10f), content = {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_emoji_menu),
+                    contentDescription = "Camera Button"
+                )
+            })
+            BasicTextField(
                 value = "Enter Text here...",
                 onValueChange = {},
-                modifier = Modifier.fillMaxWidth(.90f).padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth(.85f)
+                    .padding(start = 5.dp, top = 5.dp, bottom = 5.dp, end = 5.dp)
             )
             IconButton(onClick = {
                 val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
                 startActivity(intent)
-            }, modifier = Modifier.align(Alignment.CenterVertically), content = {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_camera_alt_24),
-                    contentDescription = "Camera Button"
-                )
-            })
+            }, modifier = Modifier
+                .align(Alignment.CenterVertically),
+                content = {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_camera_alt_24),
+                        contentDescription = "Camera Button"
+                    )
+                })
         }
     }
 
