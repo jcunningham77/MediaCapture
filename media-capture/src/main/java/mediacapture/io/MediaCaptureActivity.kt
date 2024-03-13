@@ -6,12 +6,12 @@ import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -136,6 +136,15 @@ class MediaCaptureActivity : ComponentActivity() {
 
         setContent {
             ConstraintLayoutContent(mutableViewState, mutableMediaListState, this)
+        }
+
+        viewModel.mostRecentMedia.observe(this) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: most recent media = $it")
+            val intent = Intent()
+            intent.putExtra("media_extra", it)
+            setResult(RESULT_OK, intent);
+            Log.i(TAG, "JEFFREYCUNNINGHAM: setting intent: $intent, calling finish")
+            finish()
         }
     }
     // endregion activity lifecycle
@@ -389,13 +398,14 @@ class MediaCaptureActivity : ComponentActivity() {
                             "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
                         )
 
-                        val text = "Video captured successfully!"
-                        val duration = Toast.LENGTH_SHORT
 
-                        val toast = Toast.makeText(this, text, duration)
-                        toast.show()
-
-                        viewModel.triggerMediaQuery()
+                        viewModel.fetchMostRecentMedia()
+//                        val text = "Video captured successfully!"
+//                        val duration = Toast.LENGTH_SHORT
+//
+//                        val toast = Toast.makeText(this, text, duration)
+//                        toast.show()
+//                        viewModel.triggerMediaQuery()
 
 
                     } else {

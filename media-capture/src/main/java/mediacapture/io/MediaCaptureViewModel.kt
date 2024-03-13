@@ -127,6 +127,22 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             }
         }
 
+    private val fetchMostRecentMediaSubject = PublishSubject.create<Unit>()
+
+    fun fetchMostRecentMedia() {
+        fetchMostRecentMediaSubject.onNext(Unit)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    val mostRecentMedia: Observable<Media> =
+        fetchMostRecentMediaSubject.flatMap {
+            Observable.fromCallable {
+                retrieveRecentMedia()
+            }
+        }.map {
+            it.last()
+        }
+
     @SuppressLint("StaticFieldLeak")
     // FIXME is this a potential memory leak?
     private val applicationContext = application.applicationContext
