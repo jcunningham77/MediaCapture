@@ -33,6 +33,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import demoapp.io.ui.theme.DemoAppTheme
 import mediacapture.io.MediaCaptureActivity
 import mediacapture.io.model.Media
+import kotlin.random.Random
 
 class DemoActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
@@ -99,6 +100,26 @@ class DemoActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
         )
+
+        Log.i(TAG, "JEFFREYCUNNINGHAM: ChatContainer: messages =  ${generateSampleMessages()}")
+    }
+
+    private fun generateSampleMessages(): List<String> {
+        val lipsum =
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        val lipsumChunks = lipsum.split(" ")
+
+        val messages = mutableListOf<String>()
+        for (i in 1..4) {
+            var message = String()
+            while (message.length < 50) {
+                val chunkToAppend = Random.nextInt(until = lipsumChunks.size - 1)
+                message += " ${lipsumChunks[chunkToAppend]}"
+            }
+            messages.add(message)
+        }
+
+        return messages
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
