@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,6 +35,7 @@ import mediacapture.io.model.Media
 
 class DemoActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val startForResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -49,27 +51,54 @@ class DemoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DemoAppTheme {
-                // A surface container using the 'background' color from the theme
-                ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+            ScreenContent()
+        }
+    }
 
-                    val (cameraButtonRef) = createRefs()
-                    val inputBoxLayoutModifier = Modifier
-                        .constrainAs(cameraButtonRef) {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    @Composable
+    fun ScreenContent() {
+        DemoAppTheme {
+            // A surface container using the 'background' color from the theme
+            ConstraintLayout(modifier = Modifier.fillMaxSize()) {
 
-                            bottom.linkTo(parent.bottom)
-                            end.linkTo(parent.end)
-                            start.linkTo(parent.start)
-                        }
-                        .padding(10.dp)
+                val (inputBoxRef, chatContainerRef) = createRefs()
 
-                    InputRow(inputBoxLayoutModifier)
 
+                val inputBoxLayoutModifier = Modifier
+                    .constrainAs(inputBoxRef) {
+
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end)
+                        start.linkTo(parent.start)
+                    }
+                    .padding(10.dp)
+
+                val chatContainerLayoutModifier = Modifier.constrainAs(
+                    chatContainerRef
+                ) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(inputBoxRef.top)
                 }
+
+                ChatContainer(modifier = chatContainerLayoutModifier)
+                InputRow(inputBoxLayoutModifier)
+
             }
         }
     }
 
+
+    @Composable
+    fun ChatContainer(modifier: Modifier) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+        )
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
@@ -122,18 +151,20 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
+//    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//    @Preview
+//    @Composable
+//    fun InputRowPreview() {
+//        InputRow()
+//    }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Preview
     @Composable
-    fun InputRowPreview() {
-        InputRow()
+    fun FullScreenPreview() {
+        ScreenContent()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-        Log.i(TAG, "JEFFREYCUNNINGHAM: onDestroy: ")
-    }
 
 }
 
