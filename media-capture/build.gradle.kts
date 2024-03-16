@@ -50,6 +50,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+
     // Not managed by compose-bom
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
     implementation("androidx.compose.material3:material3")

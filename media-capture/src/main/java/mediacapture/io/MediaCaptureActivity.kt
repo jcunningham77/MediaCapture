@@ -70,6 +70,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
 import mediacapture.io.livedata.observe
 import mediacapture.io.model.Media
 import mediacapture.io.model.MediaType
@@ -531,10 +532,13 @@ class MediaCaptureActivity : ComponentActivity() {
             ContextCompat.getMainExecutor(this.baseContext),
             createRecordingListener()
         )
+        Log.i(TAG, "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}")
     }
 
     private fun stopRecording() {
+        
         if (recording != null) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}")
             recording!!.stop()
         } else {
             Log.i(TAG, "stopRecording:  recording is NULL")
@@ -542,8 +546,10 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     private fun ContentResolver.createMediaStoreOptionsForVideo(): MediaStoreOutputOptions {
+        val timestamp = Clock.System.now()
+        Log.i(TAG, "JEFFREYCUNNINGHAM: createMediaStoreOptionsForVideo: timestamp = $timestamp")
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture-2")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture $timestamp")
             put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
         }
         return MediaStoreOutputOptions.Builder(
