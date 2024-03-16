@@ -2,6 +2,7 @@ package demoapp.io
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -96,7 +97,7 @@ class DemoActivity : ComponentActivity() {
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .background(MaterialTheme.colorScheme.surface)
         )
     }
 
@@ -151,15 +152,13 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
-//    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//    @Preview
-//    @Composable
-//    fun InputRowPreview() {
-//        InputRow()
-//    }
-
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    @Preview
+    @Preview(name = "Light Mode")
+    @Preview(
+        uiMode = Configuration.UI_MODE_NIGHT_YES,
+        showBackground = true,
+        name = "Dark Mode"
+    )
     @Composable
     fun FullScreenPreview() {
         ScreenContent()
