@@ -36,7 +36,7 @@ class DemoActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private val startForResult =
-        this.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             Log.i(TAG, "JEFFREYCUNNINGHAM: result: ")
             if (result.resultCode == Activity.RESULT_OK) {
                 val intent = result.data
@@ -83,8 +83,8 @@ class DemoActivity : ComponentActivity() {
                 )
         ) {
             IconButton(onClick = {
-                val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
-                startForResult.launch(intent)
+                // no op //
+
             }, modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .fillMaxWidth(.10f), content = {
@@ -106,7 +106,7 @@ class DemoActivity : ComponentActivity() {
             IconButton(
                 onClick = {
                     val intent = Intent(this@DemoActivity, MediaCaptureActivity::class.java)
-                    startActivity(intent)
+                    startForResult.launch(intent)
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically),
@@ -127,6 +127,12 @@ class DemoActivity : ComponentActivity() {
     @Composable
     fun InputRowPreview() {
         InputRow()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        Log.i(TAG, "JEFFREYCUNNINGHAM: onDestroy: ")
     }
 
 }
