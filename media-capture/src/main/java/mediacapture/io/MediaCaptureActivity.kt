@@ -8,10 +8,12 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.util.Size
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -187,6 +189,7 @@ class MediaCaptureActivity : ComponentActivity() {
     // endregion activity lifecycle
 
     // region composable
+    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ConstraintLayoutContent(
         mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
@@ -266,32 +269,32 @@ class MediaCaptureActivity : ComponentActivity() {
             if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
                     items(mutableMediaList.value) {
-                        it.thumbnailUri?.let { thumbnail ->
-                            if (it.mediaType == MediaType.VIDEO) {
-                                Box {
-                                    Image(
-                                        modifier = Modifier
-                                            .padding(horizontal = 2.dp)
-                                            .size(75.dp),
-                                        bitmap = thumbnail.asImageBitmap(),
-                                        contentDescription = "Thumbnail",
-                                        contentScale = ContentScale.Crop,
+                        val thumbnail: Bitmap =
+                            applicationContext.contentResolver.loadThumbnail(
+                                it.uri, Size(640, 480), null
+                            )
 
-                                        )
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.baseline_videocam_24),
-                                        contentDescription = "VideoType",
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .padding(end = 5.dp),
+                        if (it.mediaType == MediaType.VIDEO) {
+                            Box {
+                                Image(
+                                    modifier = Modifier
+                                        .padding(horizontal = 2.dp)
+                                        .size(75.dp),
+                                    bitmap = thumbnail.asImageBitmap(),
+                                    contentDescription = "Thumbnail",
+                                    contentScale = ContentScale.Crop,
+
                                     )
-                                }
-                            } else {
-                                Image(bitmap = thumbnail.asImageBitmap(), "Thumbnail")
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_videocam_24),
+                                    contentDescription = "VideoType",
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(end = 5.dp),
+                                )
                             }
-
-                        } ?: run {
-                            Text(text = "Thumbnail unavailable")
+                        } else {
+                            Image(bitmap = thumbnail.asImageBitmap(), "Thumbnail")
                         }
                     }
                 }
@@ -532,13 +535,19 @@ class MediaCaptureActivity : ComponentActivity() {
             ContextCompat.getMainExecutor(this.baseContext),
             createRecordingListener()
         )
-        Log.i(TAG, "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}")
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}"
+        )
     }
 
     private fun stopRecording() {
-        
+
         if (recording != null) {
-            Log.i(TAG, "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}")
+            Log.i(
+                TAG,
+                "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}"
+            )
             recording!!.stop()
         } else {
             Log.i(TAG, "stopRecording:  recording is NULL")

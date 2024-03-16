@@ -8,9 +8,9 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Media(
     val uri: Uri,
-    val thumbnailUri: Bitmap? = null,
     val name: String,
     val duration: Int,
     val size: Int,
-    val mediaType: MediaType = MediaType.VIDEO
+    val mediaType: MediaType = MediaType.VIDEO,
+    val mediaStoreId: Long,
 ) : Parcelable

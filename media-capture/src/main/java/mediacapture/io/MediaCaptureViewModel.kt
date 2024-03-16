@@ -3,12 +3,10 @@ package mediacapture.io
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.ContentUris
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import android.util.Size
 import androidx.annotation.RequiresApi
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
@@ -22,7 +20,6 @@ import io.reactivex.subjects.PublishSubject
 import mediacapture.io.model.Media
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 class MediaCaptureViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -195,12 +192,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                     id
                 )
 
-                val thumbnail: Bitmap =
-                    applicationContext.contentResolver.loadThumbnail(
-                        contentUri, Size(640, 480), null
-                    )
-
-                mediaList += Media(contentUri, thumbnail, name, duration, size)
+                mediaList += Media(uri = contentUri, name, duration, size, mediaStoreId = id)
             }
 
             mediaList.forEach {
@@ -259,7 +251,10 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
         val initializationViewStateDisposable =
             permissionsGrantedSubject.subscribe {
-                Log.i(TAG, "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: ")
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: "
+                )
                 disposables.add(processCameraProviderSingle.subscribe { it ->
                     processCameraProvider = it
                     viewStateSubject.onNext(
@@ -271,7 +266,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                     )
                 })
             }
-            
+
 
         disposables.add(initializationViewStateDisposable)
 
