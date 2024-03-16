@@ -99,6 +99,11 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    private val permissionsGrantedSubject = PublishSubject.create<Unit>()
+    fun permissionsGranted() {
+        permissionsGrantedSubject.onNext(Unit)
+    }
+
     sealed class ClickEvent
 
     object FlipCameraClickEvent : ClickEvent()
@@ -252,28 +257,23 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     init {
 
-        val initializationViewStateObservable =
-            Observable.interval(500, 500, TimeUnit.MILLISECONDS).take(2).subscribe {
-                // FIXME
-                // we should really be using startsWith() on viewStateSubject to emit a starting value, but that doesn't seem to work
-                // with reactivestreams:2.6.2 (or the ComponentActivity lifecycle)
-                if (it == 0L) {
-                    viewStateSubject.onNext(PendingInitialization)
-                } else if (it == 1L) {
-                    disposables.add(processCameraProviderSingle.subscribe { it ->
-                        processCameraProvider = it
-                        viewStateSubject.onNext(
-                            Initialized(
-                                processCameraProvider,
-                                recordingState = RecordingState.INITIALIZED,
-                                cameraFacing = cameraFacingSelected,
-                            )
+        val initializationViewStateDisposable =
+            permissionsGrantedSubject.subscribe {
+                Log.i(TAG, "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: ")
+                disposables.add(processCameraProviderSingle.subscribe { it ->
+                    processCameraProvider = it
+                    viewStateSubject.onNext(
+                        Initialized(
+                            processCameraProvider,
+                            recordingState = RecordingState.INITIALIZED,
+                            cameraFacing = cameraFacingSelected,
                         )
-                    })
-                }
+                    )
+                })
             }
+            
 
-        disposables.add(initializationViewStateObservable)
+        disposables.add(initializationViewStateDisposable)
 
     }
 }

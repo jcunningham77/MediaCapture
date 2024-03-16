@@ -96,19 +96,40 @@ class MediaCaptureActivity : ComponentActivity() {
     private val mutableMediaListState: MutableState<List<Media>> =
         mutableStateOf(emptyList())
 
+    private var cameraPermissionGranted = false
+    private var audioPermissionGranted = false
+
     // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         viewModel = MediaCaptureViewModel(this.application)
 
+
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
-            Log.d("-- CAMERA PERMISSION --", permission.toString())
+
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: CAMERA permission returned: permission = $permission")
+            cameraPermissionGranted = permission
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: local cameraPermissionGranted is: $cameraPermissionGranted")
+            checkPermissionsAndInitializeCameraX()
+
         }.launch(Manifest.permission.CAMERA)
 
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
-            Log.d("-- RECORD_AUDIO PERMISSION --", permission.toString())
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: RECORD_AUDIO permission returned: permission = $permission")
+            audioPermissionGranted = permission
+            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: local audioPermissionGranted is: $audioPermissionGranted")
+            checkPermissionsAndInitializeCameraX()
         }.launch(Manifest.permission.RECORD_AUDIO)
+    }
+
+    private fun checkPermissionsAndInitializeCameraX(){
+        if (cameraPermissionGranted&&audioPermissionGranted) {
+            Log.i(TAG, "JEFFREYCUNNINGHAM: checkPermissionsAndInitializeCameraX Both required permissions are granted, let's call the VM to initialize Camera X")
+            viewModel.permissionsGranted()
+        } else{
+            Log.i(TAG, "JEFFREYCUNNINGHAM: checkPermissionsAndInitializeCameraX permissions are not granted yet")
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
