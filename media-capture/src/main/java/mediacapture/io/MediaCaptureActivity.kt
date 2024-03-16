@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -96,9 +97,6 @@ class MediaCaptureActivity : ComponentActivity() {
     private val mutableMediaListState: MutableState<List<Media>> =
         mutableStateOf(emptyList())
 
-    private var cameraPermissionGranted = false
-    private var audioPermissionGranted = false
-
     // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -106,30 +104,47 @@ class MediaCaptureActivity : ComponentActivity() {
         viewModel = MediaCaptureViewModel(this.application)
 
 
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
 
-            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: CAMERA permission returned: permission = $permission")
-            cameraPermissionGranted = permission
-            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: local cameraPermissionGranted is: $cameraPermissionGranted")
-            checkPermissionsAndInitializeCameraX()
+            var permissionDenied = false
 
-        }.launch(Manifest.permission.CAMERA)
+            for (entries in permissionMap) {
 
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { permission ->
-            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: RECORD_AUDIO permission returned: permission = $permission")
-            audioPermissionGranted = permission
-            Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: local audioPermissionGranted is: $audioPermissionGranted")
-            checkPermissionsAndInitializeCameraX()
-        }.launch(Manifest.permission.RECORD_AUDIO)
-    }
+                val permission = entries.key
+                val permissionGranted = entries.value
 
-    private fun checkPermissionsAndInitializeCameraX(){
-        if (cameraPermissionGranted&&audioPermissionGranted) {
-            Log.i(TAG, "JEFFREYCUNNINGHAM: checkPermissionsAndInitializeCameraX Both required permissions are granted, let's call the VM to initialize Camera X")
-            viewModel.permissionsGranted()
-        } else{
-            Log.i(TAG, "JEFFREYCUNNINGHAM: checkPermissionsAndInitializeCameraX permissions are not granted yet")
-        }
+
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: onCreate: permission: $permission status: $permissionGranted"
+                )
+                if (!permissionGranted) {
+                    permissionDenied = true
+                }
+
+            }
+
+            if (permissionDenied) {
+                Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: user rejected permissions")
+                Toast.makeText(
+                    this,
+                    "Sorry, you need to grant Camera and Audio permissions to use this feature",
+                    Toast.LENGTH_SHORT
+                ).show()
+                this.finish()
+
+            } else {
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: onCreate: permissions granted, let's initialize the Camera X"
+                )
+                viewModel.permissionsGranted()
+            }
+
+
+        }.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
+
+
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -177,6 +192,10 @@ class MediaCaptureActivity : ComponentActivity() {
         mutableMediaList: MutableState<List<Media>>,
         activity: ComponentActivity,
     ) {
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: ConstraintLayoutContent: mutableViewState = ${mutableViewState.value}"
+        )
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
