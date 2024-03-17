@@ -69,43 +69,21 @@ class DemoActivity : ComponentActivity() {
     fun ScreenContent() {
         DemoAppTheme {
             // A surface container using the 'background' color from the theme
-            ConstraintLayout(modifier = Modifier.fillMaxSize()) {
 
-                val (inputBoxRef, chatContainerRef) = createRefs()
-
-
-                val inputBoxLayoutModifier = Modifier
-                    .constrainAs(inputBoxRef) {
-
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end)
-                        start.linkTo(parent.start)
-                    }
-                    .padding(10.dp)
-
-                val chatContainerLayoutModifier = Modifier.constrainAs(
-                    chatContainerRef
-                ) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(inputBoxRef.top)
-                }
-
-                ChatContainer(modifier = chatContainerLayoutModifier)
-                InputRow(inputBoxLayoutModifier)
-
+            Column {
+                ChatContainer(Modifier.weight(1f))
+                InputRow()
             }
         }
     }
 
 
     @Composable
-    fun ChatContainer(modifier: Modifier) {
+    fun ChatContainer(modifier: Modifier= Modifier) {
         val messages = generateSampleMessages()
         Box(
             modifier = modifier
-                .fillMaxSize()
+
                 .background(MaterialTheme.colorScheme.surface)
         ){
             LazyColumn {
