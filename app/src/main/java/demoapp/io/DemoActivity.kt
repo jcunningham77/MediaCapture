@@ -27,6 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -52,17 +54,25 @@ class DemoActivity : ComponentActivity() {
             }
         }
 
+    private val mutableChatMessages: MutableState<List<ChatMessage>> = mutableStateOf(emptyList())
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            ScreenContent()
+            ScreenContent(mutableChatMessages)
         }
+        mutableChatMessages.value = generateSampleMessages()
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
-    fun ScreenContent() {
+    fun ScreenContent(
+        chatMessage: MutableState<List<ChatMessage>> = mutableStateOf(
+            generateSampleMessages()
+        )
+    ) {
         DemoAppTheme {
             // A surface container using the 'background' color from the theme
 
@@ -75,18 +85,20 @@ class DemoActivity : ComponentActivity() {
 
 
     @Composable
-    fun ChatContainer(modifier: Modifier= Modifier) {
+    fun ChatContainer(modifier: Modifier = Modifier) {
         val messages = generateSampleMessages()
         Box(
             modifier = modifier
 
                 .background(MaterialTheme.colorScheme.surface)
-        ){
+        ) {
             LazyColumn {
-                itemsIndexed(messages) {index, item->
+                itemsIndexed(messages) { index, item ->
                     val farUser = (index % 2) == 0
+                    if (item is TextMessage) {
+                        ChatItemBubble(item.message, farUser)
+                    }
 
-                    ChatItemBubble(item, farUser)
                 }
             }
         }
@@ -109,7 +121,7 @@ class DemoActivity : ComponentActivity() {
             MaterialTheme.colorScheme.primary
         }
 
-        val backgroundBubbleShape = if (isUserMe){
+        val backgroundBubbleShape = if (isUserMe) {
             nearChatBubbleShape
         } else {
             farChatBubbleShape
@@ -131,19 +143,19 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
-    private fun generateSampleMessages(): List<String> {
+    private fun generateSampleMessages(): List<TextMessage> {
         val lipsum =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
         val lipsumChunks = lipsum.split(" ")
 
-        val messages = mutableListOf<String>()
+        val messages = mutableListOf<TextMessage>()
         for (i in 1..4) {
             var message = String()
             while (message.length < 50) {
                 val chunkToAppend = Random.nextInt(until = lipsumChunks.size - 1)
                 message += " ${lipsumChunks[chunkToAppend]}"
             }
-            messages.add(message)
+            messages.add(TextMessage(message))
         }
 
         return messages
@@ -211,7 +223,5 @@ class DemoActivity : ComponentActivity() {
     fun FullScreenPreview() {
         ScreenContent()
     }
-
-
 }
 
