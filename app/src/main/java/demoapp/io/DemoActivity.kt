@@ -69,7 +69,7 @@ class DemoActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @Composable
     fun ScreenContent(
-        chatMessage: MutableState<List<ChatMessage>> = mutableStateOf(
+        chatMessages: MutableState<List<ChatMessage>> = mutableStateOf(
             generateSampleMessages()
         )
     ) {
@@ -77,7 +77,7 @@ class DemoActivity : ComponentActivity() {
             // A surface container using the 'background' color from the theme
 
             Column {
-                ChatContainer(Modifier.weight(1f))
+                ChatContainer(Modifier.weight(1f), chatMessages)
                 InputRow()
             }
         }
@@ -85,15 +85,17 @@ class DemoActivity : ComponentActivity() {
 
 
     @Composable
-    fun ChatContainer(modifier: Modifier = Modifier) {
-        val messages = generateSampleMessages()
+    fun ChatContainer(
+        modifier: Modifier = Modifier,
+        chatMessages: MutableState<List<ChatMessage>>
+    ) {
         Box(
             modifier = modifier
 
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             LazyColumn {
-                itemsIndexed(messages) { index, item ->
+                itemsIndexed(chatMessages.value) { index, item ->
                     val farUser = (index % 2) == 0
                     if (item is TextMessage) {
                         ChatItemBubble(item.message, farUser)
@@ -146,7 +148,7 @@ class DemoActivity : ComponentActivity() {
     private fun generateSampleMessages(): List<TextMessage> {
         val lipsum = this.resources.getString(R.string.lipsum)
         val lipsumChunks = lipsum.split(" ")
-        
+
         val messages = mutableListOf<TextMessage>()
         for (i in 1..4) {
             var message = String()
