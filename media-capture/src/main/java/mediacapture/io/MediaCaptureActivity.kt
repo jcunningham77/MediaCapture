@@ -269,6 +269,7 @@ class MediaCaptureActivity : ComponentActivity() {
             if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
                     items(mutableMediaList.value) {
+                        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: item URI = ${it.uri}")
                         val thumbnail: Bitmap =
                             applicationContext.contentResolver.loadThumbnail(
                                 it.uri, Size(640, 480), null

@@ -3,9 +3,12 @@ package demoapp.io
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
@@ -27,14 +30,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
+import com.google.android.exoplayer2.ui.StyledPlayerView
 import demoapp.io.ui.theme.DemoAppTheme
 import mediacapture.io.MediaCaptureActivity
 import mediacapture.io.model.Media
@@ -51,6 +62,11 @@ class DemoActivity : ComponentActivity() {
                 val intent = result.data
                 val media = intent?.getParcelableExtra("media_extra", Media::class.java)
                 Log.i(TAG, "JEFFREYCUNNINGHAM: :received media =  $media ")
+                media?.let {
+                    val videoChatMessage = VideoMessage(media.uri)
+                    mutableChatMessages.value += videoChatMessage
+                }
+
             }
         }
 
@@ -91,7 +107,6 @@ class DemoActivity : ComponentActivity() {
     ) {
         Box(
             modifier = modifier
-
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             LazyColumn {
@@ -99,6 +114,8 @@ class DemoActivity : ComponentActivity() {
                     val farUser = (index % 2) == 0
                     if (item is TextMessage) {
                         ChatItemBubble(item.message, farUser)
+                    } else if (item is VideoMessage) {
+                        VideoItemBubble(item.uri)
                     }
 
                 }
@@ -129,6 +146,7 @@ class DemoActivity : ComponentActivity() {
             farChatBubbleShape
         }
 
+        // TODO: Do we really need a column here?
         Column(modifier = Modifier.padding(5.dp)) {
             Surface(
                 color = backgroundBubbleColor,
@@ -143,6 +161,44 @@ class DemoActivity : ComponentActivity() {
 
             // ...
         }
+    }
+
+    @Composable
+    fun VideoItemBubble(
+        uri: Uri
+    ){
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = nearChatBubbleShape
+        ) {
+            val context = LocalContext.current
+
+            val mediaItem = MediaItem.Builder()
+                .setUri("your-uri")
+                .build()
+            val exoPlayer = remember(context, mediaItem) {
+                ExoPlayer.Builder(context)
+                    .build()
+                    .also { exoPlayer ->
+                        exoPlayer.setMediaItem(mediaItem)
+                        exoPlayer.prepare()
+                        exoPlayer.playWhenReady = false
+                        exoPlayer.repeatMode = REPEAT_MODE_OFF
+                    }
+            }
+
+            DisposableEffect(
+                AndroidView(factory = {
+                    StyledPlayerView(context).apply {
+                        player = exoPlayer
+                    }
+                })
+            ) {
+                onDispose { exoPlayer.release() }
+            }
+
+        }
+
     }
 
     private fun generateSampleMessages(): List<TextMessage> {
