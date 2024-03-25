@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -78,8 +79,8 @@ class DemoActivity : ComponentActivity() {
 
         setContent {
             ScreenContent(mutableChatMessages)
+            mutableChatMessages.value = generateSampleMessages()
         }
-        mutableChatMessages.value = generateSampleMessages()
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -166,7 +167,7 @@ class DemoActivity : ComponentActivity() {
     @Composable
     fun VideoItemBubble(
         uri: Uri
-    ){
+    ) {
         Surface(
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = nearChatBubbleShape
@@ -201,8 +202,10 @@ class DemoActivity : ComponentActivity() {
 
     }
 
+    @Composable
     private fun generateSampleMessages(): List<TextMessage> {
-        val lipsum = this.resources.getString(R.string.lipsum)
+
+        val lipsum = stringResource(id = R.string.lipsum)
         val lipsumChunks = lipsum.split(" ")
 
         val messages = mutableListOf<TextMessage>()
