@@ -49,6 +49,7 @@ import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import demoapp.io.ui.theme.DemoAppTheme
 import mediacapture.io.MediaCaptureActivity
+import mediacapture.io.MediaCaptureActivity.Companion.MEDIA_EXTRA
 import mediacapture.io.model.Media
 import kotlin.random.Random
 
@@ -61,7 +62,7 @@ class DemoActivity : ComponentActivity() {
             Log.i(TAG, "JEFFREYCUNNINGHAM: result: ")
             if (result.resultCode == Activity.RESULT_OK) {
                 val intent = result.data
-                val media = intent?.getParcelableExtra("media_extra", Media::class.java)
+                val media = intent?.getParcelableExtra(MEDIA_EXTRA, Media::class.java)
                 Log.i(TAG, "JEFFREYCUNNINGHAM: :received media =  $media ")
                 media?.let {
                     val videoChatMessage = VideoMessage(media.uri)
@@ -169,13 +170,14 @@ class DemoActivity : ComponentActivity() {
         uri: Uri
     ) {
         Surface(
+            modifier = Modifier.padding(5.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = nearChatBubbleShape
         ) {
             val context = LocalContext.current
 
             val mediaItem = MediaItem.Builder()
-                .setUri("your-uri")
+                .setUri(uri)
                 .build()
             val exoPlayer = remember(context, mediaItem) {
                 ExoPlayer.Builder(context)

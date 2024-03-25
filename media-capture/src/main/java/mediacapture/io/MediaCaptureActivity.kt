@@ -34,6 +34,7 @@ import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,10 +44,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -59,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +70,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -88,6 +93,7 @@ class MediaCaptureActivity : ComponentActivity() {
     companion object {
         const val VIDEO_URI = "video.uri"
         const val VIDEO_MAX_LENGTH = 60
+        const val MEDIA_EXTRA = "MEDIA_EXTRA"
 
         fun start() {
 
@@ -105,6 +111,8 @@ class MediaCaptureActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         viewModel = MediaCaptureViewModel(this.application)
+
+
 
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
@@ -180,7 +188,7 @@ class MediaCaptureActivity : ComponentActivity() {
         viewModel.mostRecentMedia.observe(this) {
             Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: most recent media = $it")
             val intent = Intent()
-            intent.putExtra("media_extra", it)
+            intent.putExtra(MEDIA_EXTRA, it)
             setResult(RESULT_OK, intent);
             Log.i(TAG, "JEFFREYCUNNINGHAM: setting intent: $intent, calling finish")
             finish()
@@ -268,15 +276,35 @@ class MediaCaptureActivity : ComponentActivity() {
 
             if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
-                    items(mutableMediaList.value) {
-                        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: item URI = ${it.uri}")
+                    items(mutableMediaList.value) { media ->
+
+                        Log.i(
+                            TAG,
+                            "JEFFREYCUNNINGHAM: ConstraintLayoutContent: item URI = ${media.uri}"
+                        )
                         val thumbnail: Bitmap =
                             applicationContext.contentResolver.loadThumbnail(
-                                it.uri, Size(640, 480), null
+                                media.uri, Size(640, 480), null
                             )
 
-                        if (it.mediaType == MediaType.VIDEO) {
-                            Box {
+                        if (media.mediaType == MediaType.VIDEO) {
+                            val showDialog = remember {
+                                mutableStateOf(false)
+                            }
+                            if (showDialog.value) {
+                                ConfirmSelectedMedia(
+                                    showDialog = showDialog.value,
+                                    onDismiss = { showDialog.value = false },
+                                    onConfirmation = {
+                                        val intent = Intent()
+                                        intent.putExtra(MEDIA_EXTRA, media)
+                                        setResult(RESULT_OK, intent)
+                                        finish()
+                                    })
+                            }
+                            Box(modifier = Modifier.clickable(onClick = {
+                                showDialog.value = true
+                            })) {
                                 Image(
                                     modifier = Modifier
                                         .padding(horizontal = 2.dp)
@@ -316,6 +344,37 @@ class MediaCaptureActivity : ComponentActivity() {
                     textAlign = TextAlign.Center
                 )
             }
+        }
+    }
+
+    @Composable
+    fun ConfirmSelectedMedia(
+        showDialog: Boolean,
+        onDismiss: () -> Unit,
+        onConfirmation: () -> Unit,
+    ) {
+        if (showDialog) {
+            AlertDialog(
+                title = {
+                    Text("Confirm selection")
+                },
+                text = {
+                    Text(text = "Are you sure you want this media?")
+                },
+                onDismissRequest = onDismiss,
+                confirmButton = {
+                    TextButton(onClick = onConfirmation) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                },
+
+
+            )
         }
     }
 
