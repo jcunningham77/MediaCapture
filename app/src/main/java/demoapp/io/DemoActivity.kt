@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -170,7 +171,7 @@ class DemoActivity : ComponentActivity() {
     fun VideoItemBubble(
         uri: Uri
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(5.dp)) {
             Surface(
                 modifier = Modifier.fillMaxWidth(.4f)
                     .align(Alignment.CenterEnd),
