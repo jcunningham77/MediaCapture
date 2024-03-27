@@ -3,12 +3,12 @@ package demoapp.io
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
-
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,10 +44,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
-import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ui.PlayerView
 import demoapp.io.ui.theme.DemoAppTheme
 import mediacapture.io.MediaCaptureActivity
 import mediacapture.io.MediaCaptureActivity.Companion.MEDIA_EXTRA
@@ -169,38 +170,49 @@ class DemoActivity : ComponentActivity() {
     fun VideoItemBubble(
         uri: Uri
     ) {
-        Surface(
-            modifier = Modifier.padding(5.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = nearChatBubbleShape
-        ) {
-            val context = LocalContext.current
-
-            val mediaItem = MediaItem.Builder()
-                .setUri(uri)
-                .build()
-            val exoPlayer = remember(context, mediaItem) {
-                ExoPlayer.Builder(context)
-                    .build()
-                    .also { exoPlayer ->
-                        exoPlayer.setMediaItem(mediaItem)
-                        exoPlayer.prepare()
-                        exoPlayer.playWhenReady = false
-                        exoPlayer.repeatMode = REPEAT_MODE_OFF
-                    }
-            }
-
-            DisposableEffect(
-                AndroidView(factory = {
-                    StyledPlayerView(context).apply {
-                        player = exoPlayer
-                    }
-                })
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(.4f)
+                    .align(Alignment.CenterEnd),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = nearChatBubbleShape
             ) {
-                onDispose { exoPlayer.release() }
-            }
+                val context = LocalContext.current
 
+                val mediaItem = MediaItem.Builder()
+                    .setUri(uri)
+                    .build()
+                val exoPlayer = remember(context, mediaItem) {
+                    SimpleExoPlayer.Builder(context)
+                        .build()
+                        .also { exoPlayer ->
+                            exoPlayer.setMediaItem(mediaItem)
+                            exoPlayer.prepare()
+                            exoPlayer.playWhenReady = false
+                            exoPlayer.repeatMode = REPEAT_MODE_OFF
+                        }
+                }
+
+                DisposableEffect(
+                    AndroidView(factory = {
+                        PlayerView(context).apply {
+                            player = exoPlayer
+                            layoutParams = FrameLayout.LayoutParams(
+                                ViewGroup.LayoutParams
+                                    .MATCH_PARENT,
+                                ViewGroup.LayoutParams
+                                    .MATCH_PARENT
+                            )
+
+                        }
+                    }, modifier = Modifier.wrapContentSize())
+                ) {
+                    onDispose { exoPlayer.release() }
+                }
+
+            }
         }
+
 
     }
 
