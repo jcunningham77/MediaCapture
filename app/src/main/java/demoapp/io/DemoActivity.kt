@@ -3,18 +3,22 @@ package demoapp.io
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.FrameLayout
+import android.util.Size
+import android.widget.MediaController
+import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,12 +36,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,10 +50,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player.REPEAT_MODE_OFF
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ui.PlayerView
 import demoapp.io.ui.theme.DemoAppTheme
 import mediacapture.io.MediaCaptureActivity
 import mediacapture.io.MediaCaptureActivity.Companion.MEDIA_EXTRA
@@ -104,6 +105,7 @@ class DemoActivity : ComponentActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ChatContainer(
         modifier: Modifier = Modifier,
@@ -167,54 +169,59 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun VideoItemBubble(
         uri: Uri
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(5.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(5.dp)
+        ) {
             Surface(
-                modifier = Modifier.fillMaxWidth(.4f)
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(5.dp)
                     .align(Alignment.CenterEnd),
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = nearChatBubbleShape
             ) {
-                val context = LocalContext.current
 
-                val mediaItem = MediaItem.Builder()
-                    .setUri(uri)
-                    .build()
-                val exoPlayer = remember(context, mediaItem) {
-                    SimpleExoPlayer.Builder(context)
-                        .build()
-                        .also { exoPlayer ->
-                            exoPlayer.setMediaItem(mediaItem)
-                            exoPlayer.prepare()
-                            exoPlayer.playWhenReady = false
-                            exoPlayer.repeatMode = REPEAT_MODE_OFF
-                        }
+
+                val thumbnail: Bitmap =
+                    applicationContext.contentResolver.loadThumbnail(
+                        uri, Size(640, 480), null
+                    )
+                val showThumbnail = remember {
+                    mutableStateOf(true)
                 }
+                if (showThumbnail.value) {
+                    Image(painter = BitmapPainter(image = thumbnail.asImageBitmap()),
+                        contentDescription = "Video Bitmap",
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .padding(5.dp)
+                            .align(Alignment.CenterEnd)
+                            .clickable(
+                                enabled = true,
+                                onClick = {
+                                    showThumbnail.value = showThumbnail.value.not()
+                                }
+                            ))
 
-                DisposableEffect(
-                    AndroidView(factory = {
-                        PlayerView(context).apply {
-                            player = exoPlayer
-                            layoutParams = FrameLayout.LayoutParams(
-                                ViewGroup.LayoutParams
-                                    .MATCH_PARENT,
-                                ViewGroup.LayoutParams
-                                    .MATCH_PARENT
-                            )
-
-                        }
-                    }, modifier = Modifier.wrapContentSize())
-                ) {
-                    onDispose { exoPlayer.release() }
+                } else {
+                    val context = LocalContext.current
+                    val mediaController = MediaController(context)
+                    val videoView = VideoView(context)
+                    videoView.setVideoURI(uri)
+                    videoView.setMediaController(mediaController)
+                    mediaController.setAnchorView(videoView)
+                    AndroidView(factory = { videoView }, modifier = Modifier.wrapContentSize())
                 }
-
             }
         }
-
-
     }
 
     @Composable
