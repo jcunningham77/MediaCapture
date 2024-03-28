@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
-import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -164,8 +164,6 @@ class DemoActivity : ComponentActivity() {
 
                 )
             }
-
-            // ...
         }
     }
 
@@ -188,40 +186,96 @@ class DemoActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = nearChatBubbleShape
             ) {
-
-
                 val thumbnail: Bitmap =
                     applicationContext.contentResolver.loadThumbnail(
                         uri, Size(640, 480), null
                     )
-                val showThumbnail = remember {
-                    mutableStateOf(true)
+                val videoBubbleState = remember {
+                    mutableStateOf(VideoBubbleState.INITIALIZED)
                 }
-                if (showThumbnail.value) {
-                    Image(painter = BitmapPainter(image = thumbnail.asImageBitmap()),
-                        contentDescription = "Video Bitmap",
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .padding(5.dp)
-                            .align(Alignment.CenterEnd)
-                            .clickable(
-                                enabled = true,
-                                onClick = {
-                                    showThumbnail.value = showThumbnail.value.not()
-                                }
-                            ))
+                when (videoBubbleState.value) {
+                    VideoBubbleState.INITIALIZED -> {
+                        ThumbNailImage(uri = uri)
 
-                } else {
-                    val context = LocalContext.current
-                    val mediaController = MediaController(context)
-                    val videoView = VideoView(context)
-                    videoView.setVideoURI(uri)
-                    videoView.setMediaController(mediaController)
-                    mediaController.setAnchorView(videoView)
-                    AndroidView(factory = { videoView }, modifier = Modifier.wrapContentSize())
+                        IconButton(onClick = {
+                            videoBubbleState.value = VideoBubbleState.PLAYBACK
+                        }, content = {
+                            Image(
+                                painterResource(id = R.drawable.play_arrow),
+                                contentDescription = "Play",
+                                modifier = Modifier.size(50.dp)
+                            )
+                        },
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(100.dp)
+                        )
+                    }
+
+                    else -> {
+                        val isPlaying = remember {
+                            mutableStateOf(true)
+                        }
+                        val context = LocalContext.current
+                        val videoView = VideoView(context)
+                        videoView.setVideoURI(uri)
+                        if (isPlaying.value) {
+                            videoView.start()
+                        }
+
+                        AndroidView(
+                            factory = { videoView },
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .clickable(enabled = true, onClick = {
+                                    isPlaying.value = false
+                                }),
+                            update = {
+                                if (isPlaying.value) {
+                                    it.start()
+                                } else {
+                                    it.pause()
+                                }
+                            }
+                        )
+
+                        if (!isPlaying.value) {
+                            IconButton(onClick = {
+                                isPlaying.value = true
+                            }, content = {
+                                Image(
+                                    painterResource(id = R.drawable.play_arrow),
+                                    contentDescription = "Play",
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            },
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(100.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    @Composable
+    fun ThumbNailImage(uri: Uri) {
+        val thumbnail: Bitmap =
+            applicationContext.contentResolver.loadThumbnail(
+                uri, Size(640, 480), null
+            )
+        Image(
+            painter = BitmapPainter(image = thumbnail.asImageBitmap()),
+            contentDescription = "Video Bitmap",
+        )
+    }
+
+    enum class VideoBubbleState {
+        INITIALIZED, // show thumbnail and Play icon
+        PLAYBACK, // hide thumbnail and Play icon. Could be paused or playing
     }
 
     @Composable
