@@ -185,10 +185,6 @@ class DemoActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = nearChatBubbleShape
             ) {
-                val thumbnail: Bitmap =
-                    applicationContext.contentResolver.loadThumbnail(
-                        uri, Size(640, 480), null
-                    )
                 val videoBubbleState = remember {
                     mutableStateOf(VideoBubbleState.INITIALIZED)
                 }
