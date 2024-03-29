@@ -214,6 +214,10 @@ class DemoActivity : ComponentActivity() {
                         val context = LocalContext.current
                         val videoView = VideoView(context)
                         videoView.setVideoURI(uri)
+                        videoView.setOnCompletionListener {
+                            // When the video is over, reset to INITIALIZED to show the thumbnail
+                            videoBubbleState.value = VideoBubbleState.INITIALIZED
+                        }
                         if (isPlaying.value) {
                             videoView.start()
                         }
