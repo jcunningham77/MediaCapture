@@ -302,6 +302,7 @@ class DemoActivity : ComponentActivity() {
         Row(
             modifier
                 .fillMaxWidth()
+                .padding(5.dp)
                 .background(
                     MaterialTheme.colorScheme.secondary,
                     shape = RoundedCornerShape(20.dp, 20.dp, 20.dp, 20.dp)
