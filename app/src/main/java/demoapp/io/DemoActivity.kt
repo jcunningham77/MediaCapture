@@ -152,18 +152,17 @@ class DemoActivity : ComponentActivity() {
             farChatBubbleShape
         }
 
-        // TODO: Do we really need a column here?
-        Column(modifier = Modifier.padding(5.dp)) {
-            Surface(
-                color = backgroundBubbleColor,
-                shape = backgroundBubbleShape
-            ) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(10.dp)
+        Surface(
+            color = backgroundBubbleColor,
+            shape = backgroundBubbleShape,
+            modifier = Modifier
+                .padding(5.dp)
+        ) {
+            Text(
+                text = message,
+                modifier = Modifier.padding(10.dp)
 
-                )
-            }
+            )
         }
     }
 
