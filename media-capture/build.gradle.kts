@@ -2,6 +2,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
+    id("maven-publish")
 }
 
 android {
@@ -12,6 +13,9 @@ android {
         minSdk = 24
         targetSdk = 33
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        aarMetadata {
+            minCompileSdk = 24
+        }
     }
 
     buildTypes {
@@ -68,4 +72,27 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.2")
     implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+}
+
+android {
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+        // ...
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("mediacapture.io Library") {
+                from(components.getByName("release"))
+                groupId = "com.github.jcunningham"
+                artifactId = "mediacapture.io"
+                version = "v0.1.0-alpha"
+            }
+        }
+    }
 }
