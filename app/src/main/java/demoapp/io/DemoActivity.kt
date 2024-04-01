@@ -122,7 +122,6 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ChatContainer(
@@ -170,17 +169,32 @@ class DemoActivity : ComponentActivity() {
             farChatBubbleShape
         }
 
-        Surface(
-            color = backgroundBubbleColor,
-            shape = backgroundBubbleShape,
+        Box(
             modifier = Modifier
-                .padding(5.dp)
+                .fillMaxWidth()
         ) {
-            Text(
-                text = message,
-                modifier = Modifier.padding(10.dp)
+            val layoutModifier = if (isUserMe) {
+                Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth(.8F)
+                    .align(Alignment.CenterEnd)
+            } else {
+                Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth(.8F)
+                    .align(Alignment.CenterStart)
+            }
+            Surface(
+                color = backgroundBubbleColor,
+                shape = backgroundBubbleShape,
+                modifier = layoutModifier
+            ) {
+                Text(
+                    text = message,
+                    modifier = Modifier.padding(10.dp)
 
-            )
+                )
+            }
         }
     }
 
