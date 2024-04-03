@@ -30,11 +30,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+//        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         compose = true
@@ -65,8 +66,8 @@ dependencies {
 
     implementation("com.google.android.exoplayer:exoplayer:2.18.7")
 
-//    implementation(project(mapOf("path" to ":media-capture"))) // local build
-    implementation("com.github.jcunningham77:MediaCapture:v0.1.0-alpha")
+    implementation(project(mapOf("path" to ":media-capture"))) // local build
+//    implementation("com.github.jcunningham77:MediaCapture:v0.1.0-alpha")
 
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.3")
 
