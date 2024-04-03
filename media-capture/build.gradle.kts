@@ -1,3 +1,5 @@
+import java.net.URI
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -86,11 +88,17 @@ android {
 afterEvaluate {
     publishing {
         publications {
-            create<MavenPublication>("mediacapture.io Library") {
+            create<MavenPublication>("release") {
                 from(components.getByName("release"))
                 groupId = "com.github.jcunningham"
                 artifactId = "mediacapture.io"
-                version = "v0.1.0-alpha"
+                version = "v0.1.1-alpha"
+            }
+        }
+
+        repositories {
+            maven {
+                url = URI("https://jitpack.io")
             }
         }
     }
