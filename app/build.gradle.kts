@@ -66,8 +66,8 @@ dependencies {
 
     implementation("com.google.android.exoplayer:exoplayer:2.18.7")
 
-    implementation(project(mapOf("path" to ":media-capture"))) // local build
-//    implementation("com.github.jcunningham77:MediaCapture:v0.1.0-alpha")
+    //implementation(project(mapOf("path" to ":media-capture"))) // local build
+    implementation("com.github.jcunningham77:MediaCapture:v0.1.2-alpha")
 
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.3")
 
