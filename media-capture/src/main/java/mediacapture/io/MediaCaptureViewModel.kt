@@ -138,13 +138,9 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             retrieveRecentMedia()
         }
     }.map { list ->
-
         list.first()
     }
 
-    @SuppressLint("StaticFieldLeak")
-    // FIXME is this a potential memory leak?
-    private val applicationContext = application.applicationContext
     private val contentResolver = application.contentResolver
 
     @RequiresApi(Build.VERSION_CODES.Q)
