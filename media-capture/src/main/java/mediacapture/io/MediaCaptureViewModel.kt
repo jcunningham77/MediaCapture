@@ -79,8 +79,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             RecordClickEvent -> {
                 viewStateSubject.onNext(
                     Initialized(
-                        processCameraProvider,
-                        recordingState = RecordingState.RECORDING
+                        processCameraProvider, recordingState = RecordingState.RECORDING
                     )
                 )
             }
@@ -88,8 +87,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             StopClickEvent -> {
                 viewStateSubject.onNext(
                     Initialized(
-                        processCameraProvider,
-                        recordingState = RecordingState.STOPPED
+                        processCameraProvider, recordingState = RecordingState.STOPPED
                     )
                 )
             }
@@ -122,12 +120,11 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    val existingMedia: Observable<List<Media>> =
-        triggerMediaQuerySubject.flatMap {
-            Observable.fromCallable {
-                retrieveRecentMedia()
-            }
+    val existingMedia: Observable<List<Media>> = triggerMediaQuerySubject.flatMap {
+        Observable.fromCallable {
+            retrieveRecentMedia()
         }
+    }
 
     private val fetchMostRecentMediaSubject = PublishSubject.create<Unit>()
 
@@ -136,15 +133,14 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    val mostRecentMedia: Observable<Media> =
-        fetchMostRecentMediaSubject.flatMap {
-            Observable.fromCallable {
-                retrieveRecentMedia()
-            }
-        }.map { list ->
-
-            list.first()
+    val mostRecentMedia: Observable<Media> = fetchMostRecentMediaSubject.flatMap {
+        Observable.fromCallable {
+            retrieveRecentMedia()
         }
+    }.map { list ->
+
+        list.first()
+    }
 
     @SuppressLint("StaticFieldLeak")
     // FIXME is this a potential memory leak?
@@ -175,10 +171,8 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
         )?.use { cursor ->
             // Cache column indices.
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val durationColumn =
-                cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
             val dateTakenColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN)
 
@@ -191,8 +185,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 val size = cursor.getInt(sizeColumn)
                 val dateTakenMillis = cursor.getLong(dateTakenColumn)
                 val contentUri: Uri = ContentUris.withAppendedId(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    id
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id
                 )
 
                 mediaList += Media(
@@ -232,8 +225,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
 
     // region view state
-    private val viewStateSubject =
-        PublishSubject.create<ViewState>()
+    private val viewStateSubject = PublishSubject.create<ViewState>()
 
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
@@ -262,23 +254,21 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     init {
 
-        val initializationViewStateDisposable =
-            permissionsGrantedSubject.subscribe {
-                Log.i(
-                    TAG,
-                    "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: "
-                )
-                disposables.add(processCameraProviderSingle.subscribe { it ->
-                    processCameraProvider = it
-                    viewStateSubject.onNext(
-                        Initialized(
-                            processCameraProvider,
-                            recordingState = RecordingState.INITIALIZED,
-                            cameraFacing = cameraFacingSelected,
-                        )
+        val initializationViewStateDisposable = permissionsGrantedSubject.subscribe {
+            Log.i(
+                TAG, "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: "
+            )
+            disposables.add(processCameraProviderSingle.subscribe { it ->
+                processCameraProvider = it
+                viewStateSubject.onNext(
+                    Initialized(
+                        processCameraProvider,
+                        recordingState = RecordingState.INITIALIZED,
+                        cameraFacing = cameraFacingSelected,
                     )
-                })
-            }
+                )
+            })
+        }
 
 
         disposables.add(initializationViewStateDisposable)
