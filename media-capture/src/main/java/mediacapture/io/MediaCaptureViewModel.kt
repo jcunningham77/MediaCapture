@@ -18,6 +18,8 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import mediacapture.io.model.Media
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -139,8 +141,9 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             Observable.fromCallable {
                 retrieveRecentMedia()
             }
-        }.map {
-            it.last()
+        }.map { list ->
+
+            list.first()
         }
 
     @SuppressLint("StaticFieldLeak")
@@ -155,7 +158,8 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DURATION,
-            MediaStore.Video.Media.SIZE
+            MediaStore.Video.Media.SIZE,
+            MediaStore.Video.Media.DATE_TAKEN,
         )
 
         val mediaList = mutableListOf<Media>()
@@ -176,6 +180,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
             val durationColumn =
                 cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+            val dateTakenColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN)
 
 
             while (cursor.moveToNext()) {
@@ -184,17 +189,30 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 val name = cursor.getString(nameColumn)
                 val duration = cursor.getInt(durationColumn)
                 val size = cursor.getInt(sizeColumn)
-
+                val dateTakenMillis = cursor.getLong(dateTakenColumn)
                 val contentUri: Uri = ContentUris.withAppendedId(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
 
-                mediaList += Media(uri = contentUri, name, duration, size, mediaStoreId = id)
+                mediaList += Media(
+                    uri = contentUri,
+                    name,
+                    duration,
+                    size,
+                    mediaStoreId = id,
+                    dateTakenMillis = dateTakenMillis
+                )
             }
 
-            mediaList.forEach {
-                Log.i(TAG, "onViewCreated: JEFFREYCUNNINGHAM video collected = $it")
+            mediaList.forEachIndexed { index, item ->
+                val date = Date(item.dateTakenMillis)
+                val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                val formattedDate = format.format(date)
+                Log.i(
+                    TAG,
+                    "retrieveRecentMedia: JEFFREYCUNNINGHAM video collected, index: $index,  uri: ${item.uri}, date Taken: $formattedDate"
+                )
             }
         }
         return mediaList

@@ -492,24 +492,7 @@ class MediaCaptureActivity : ComponentActivity() {
                             TAG,
                             "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
                         )
-                        val result = bundleOf(
-                            VIDEO_URI to event.outputResults.outputUri
-                        )
-                        Log.i(
-                            TAG,
-                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture ends with success:  ${event.outputResults}"
-                        )
-
-
                         viewModel.fetchMostRecentMedia()
-//                        val text = "Video captured successfully!"
-//                        val duration = Toast.LENGTH_SHORT
-//
-//                        val toast = Toast.makeText(this, text, duration)
-//                        toast.show()
-//                        viewModel.triggerMediaQuery()
-
-
                     } else {
                         Log.i(
                             TAG,
@@ -526,10 +509,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
 
                 else -> {
-                    Log.i(
-                        TAG,
-                        "JEFFREYCUNNINGHAM: createRecordingListener: VideoRecordEvent : $event"
-                    )
+                    // no-op
                 }
             }
         }

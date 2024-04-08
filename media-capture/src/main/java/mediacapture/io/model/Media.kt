@@ -12,4 +12,5 @@ data class Media(
     val size: Int,
     val mediaType: MediaType = MediaType.VIDEO,
     val mediaStoreId: Long,
+    val dateTakenMillis: Long,
 ) : Parcelable
