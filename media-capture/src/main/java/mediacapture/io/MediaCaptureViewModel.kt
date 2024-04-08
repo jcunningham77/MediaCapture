@@ -81,7 +81,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                         recordingState = RecordingState.RECORDING
                     )
                 )
-                isRecordingState = true
             }
 
             StopClickEvent -> {
@@ -91,7 +90,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                         recordingState = RecordingState.STOPPED
                     )
                 )
-                isRecordingState = false
             }
         }
     }
@@ -223,9 +221,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
     // TODO default this to last used
     private var cameraFacingSelected = CameraFacing.FRONT
-
-    // TODO we shouldn't need this member - make reactive
-    private var isRecordingState = false
 
     sealed class ViewState
     object PendingInitialization : ViewState()
