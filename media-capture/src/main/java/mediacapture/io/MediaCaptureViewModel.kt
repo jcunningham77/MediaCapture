@@ -2,10 +2,7 @@ package mediacapture.io
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.content.ContentUris
-import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.camera.core.impl.utils.futures.FutureCallback
@@ -18,16 +15,16 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import mediacapture.io.model.Media
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class MediaCaptureViewModel(application: Application) : AndroidViewModel(application) {
-
+@RequiresApi(Build.VERSION_CODES.Q)
+class MediaCaptureViewModel(
+    application: Application,
+    retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase
+) : AndroidViewModel(application) {
 
     private val disposables = CompositeDisposable()
-
 
     private val TAG = this.javaClass.simpleName
 
@@ -59,8 +56,8 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     }
     // endregion camera x
 
-
     // region user event
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun onClick(clickEvent: ClickEvent) {
         Log.d(TAG, "onClick() JEFFREYCUNNINGHAM called with: clickEvent = $clickEvent")
         when (clickEvent) {
@@ -112,7 +109,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
 
 
     // region MediaStore
-
     private val triggerMediaQuerySubject = PublishSubject.create<Unit>()
 
     fun triggerMediaQuery() {
@@ -122,7 +118,7 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     @RequiresApi(Build.VERSION_CODES.Q)
     val existingMedia: Observable<List<Media>> = triggerMediaQuerySubject.flatMap {
         Observable.fromCallable {
-            retrieveRecentMedia()
+            retrieveRecentMediaUseCase.invoke()
         }
     }
 
@@ -135,83 +131,20 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     @RequiresApi(Build.VERSION_CODES.Q)
     val mostRecentMedia: Observable<Media> = fetchMostRecentMediaSubject.flatMap {
         Observable.fromCallable {
-            retrieveRecentMedia()
+            retrieveRecentMediaUseCase.invoke()
         }
     }.map { list ->
         list.first()
     }
 
-    private val contentResolver = application.contentResolver
-
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun retrieveRecentMedia(): List<Media> {
-
-        val projection = arrayOf(
-            MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.DISPLAY_NAME,
-            MediaStore.Video.Media.DURATION,
-            MediaStore.Video.Media.SIZE,
-            MediaStore.Video.Media.DATE_TAKEN,
-        )
-
-        val mediaList = mutableListOf<Media>()
-
-        val orderBy = MediaStore.Video.Media.DATE_TAKEN
-        val sortByParam = "$orderBy DESC"
-        contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortByParam,
-        )?.use { cursor ->
-            // Cache column indices.
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
-            val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            val dateTakenColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_TAKEN)
-
-
-            while (cursor.moveToNext()) {
-                // Get values of columns for a given video.
-                val id = cursor.getLong(idColumn)
-                val name = cursor.getString(nameColumn)
-                val duration = cursor.getInt(durationColumn)
-                val size = cursor.getInt(sizeColumn)
-                val dateTakenMillis = cursor.getLong(dateTakenColumn)
-                val contentUri: Uri = ContentUris.withAppendedId(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id
-                )
-
-                mediaList += Media(
-                    uri = contentUri,
-                    name,
-                    duration,
-                    size,
-                    mediaStoreId = id,
-                    dateTakenMillis = dateTakenMillis
-                )
-            }
-
-            mediaList.forEachIndexed { index, item ->
-                val date = Date(item.dateTakenMillis)
-                val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                val formattedDate = format.format(date)
-                Log.i(
-                    TAG,
-                    "retrieveRecentMedia: JEFFREYCUNNINGHAM video collected, index: $index,  uri: ${item.uri}, date Taken: $formattedDate"
-                )
-            }
-        }
-        return mediaList
-    }
     // endregion MediaStore
 
     enum class CameraFacing {
         FRONT, BACK;
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun CameraFacing.getOther(): CameraFacing {
         return if (this == CameraFacing.FRONT) {
             CameraFacing.BACK
@@ -226,12 +159,13 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
     // TODO default this to last used
+    @RequiresApi(Build.VERSION_CODES.Q)
     private var cameraFacingSelected = CameraFacing.FRONT
 
     sealed class ViewState
     object PendingInitialization : ViewState()
 
-    open class Initialized(
+    open class Initialized @RequiresApi(Build.VERSION_CODES.Q) constructor(
         open val processCameraProvider: ProcessCameraProvider,
         open val recordingState: RecordingState,
         open val cameraFacing: CameraFacing = CameraFacing.FRONT,
@@ -249,7 +183,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
     // endregion view state
 
     init {
-
         val initializationViewStateDisposable = permissionsGrantedSubject.subscribe {
             Log.i(
                 TAG, "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: "
@@ -265,9 +198,6 @@ class MediaCaptureViewModel(application: Application) : AndroidViewModel(applica
                 )
             })
         }
-
-
         disposables.add(initializationViewStateDisposable)
-
     }
 }

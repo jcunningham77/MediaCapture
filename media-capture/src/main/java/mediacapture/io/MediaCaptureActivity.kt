@@ -108,7 +108,7 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = MediaCaptureViewModel(this.application)
+        viewModel = MediaCaptureViewModel(this.application, retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver))
 
 
 
