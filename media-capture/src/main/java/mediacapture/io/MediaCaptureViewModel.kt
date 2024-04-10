@@ -2,9 +2,7 @@ package mediacapture.io
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -18,7 +16,6 @@ import mediacapture.io.model.Media
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@RequiresApi(Build.VERSION_CODES.Q)
 class MediaCaptureViewModel(
     application: Application,
     retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase
@@ -57,7 +54,6 @@ class MediaCaptureViewModel(
     // endregion camera x
 
     // region user event
-    @RequiresApi(Build.VERSION_CODES.Q)
     fun onClick(clickEvent: ClickEvent) {
         Log.d(TAG, "onClick() JEFFREYCUNNINGHAM called with: clickEvent = $clickEvent")
         when (clickEvent) {
@@ -115,7 +111,6 @@ class MediaCaptureViewModel(
         triggerMediaQuerySubject.onNext(Unit)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     val existingMedia: Observable<List<Media>> = triggerMediaQuerySubject.flatMap {
         Observable.fromCallable {
             retrieveRecentMediaUseCase.invoke()
@@ -128,7 +123,6 @@ class MediaCaptureViewModel(
         fetchMostRecentMediaSubject.onNext(Unit)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     val mostRecentMedia: Observable<Media> = fetchMostRecentMediaSubject.flatMap {
         Observable.fromCallable {
             retrieveRecentMediaUseCase.invoke()
@@ -136,15 +130,12 @@ class MediaCaptureViewModel(
     }.map { list ->
         list.first()
     }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
     // endregion MediaStore
 
     enum class CameraFacing {
         FRONT, BACK;
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun CameraFacing.getOther(): CameraFacing {
         return if (this == CameraFacing.FRONT) {
             CameraFacing.BACK
@@ -159,13 +150,12 @@ class MediaCaptureViewModel(
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
     // TODO default this to last used
-    @RequiresApi(Build.VERSION_CODES.Q)
     private var cameraFacingSelected = CameraFacing.FRONT
 
     sealed class ViewState
     object PendingInitialization : ViewState()
 
-    open class Initialized @RequiresApi(Build.VERSION_CODES.Q) constructor(
+    open class Initialized(
         open val processCameraProvider: ProcessCameraProvider,
         open val recordingState: RecordingState,
         open val cameraFacing: CameraFacing = CameraFacing.FRONT,
@@ -179,7 +169,6 @@ class MediaCaptureViewModel(
         RECORDING, // currently recording
         STOPPED // was recording but is now stopped
     }
-
     // endregion view state
 
     init {

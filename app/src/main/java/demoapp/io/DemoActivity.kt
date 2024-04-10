@@ -122,7 +122,6 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ChatContainer(
         modifier: Modifier = Modifier,
@@ -144,7 +143,6 @@ class DemoActivity : ComponentActivity() {
                 }
             }
         }
-
         Log.i(TAG, "JEFFREYCUNNINGHAM: ChatContainer: messages =  ${generateSampleMessages()}")
     }
 
@@ -192,13 +190,11 @@ class DemoActivity : ComponentActivity() {
                 Text(
                     text = message,
                     modifier = Modifier.padding(10.dp)
-
                 )
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun VideoItemBubble(
         uri: Uri
@@ -291,7 +287,6 @@ class DemoActivity : ComponentActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ThumbNailImage(uri: Uri) {
         val thumbnail: Bitmap =

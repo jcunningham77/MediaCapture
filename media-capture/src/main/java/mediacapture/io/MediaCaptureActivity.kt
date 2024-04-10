@@ -156,7 +156,6 @@ class MediaCaptureActivity : ComponentActivity() {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onResume() {
         super.onResume()
 
@@ -195,7 +194,6 @@ class MediaCaptureActivity : ComponentActivity() {
     // endregion activity lifecycle
 
     // region composable
-    @RequiresApi(Build.VERSION_CODES.Q)
     @Composable
     fun ConstraintLayoutContent(
         mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
@@ -327,7 +325,6 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-
             if (viewState is MediaCaptureViewModel.PendingInitialization
                 || (viewState is MediaCaptureViewModel.Initialized &&
                         viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
@@ -370,12 +367,9 @@ class MediaCaptureActivity : ComponentActivity() {
                         Text("Cancel")
                     }
                 },
-
-
-                )
+            )
         }
     }
-
 
     @Composable
     fun CameraPreview(
@@ -604,6 +598,5 @@ class MediaCaptureActivity : ComponentActivity() {
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         ).setContentValues(contentValues).build()
     }
-
     // endregion camera x members
 }
