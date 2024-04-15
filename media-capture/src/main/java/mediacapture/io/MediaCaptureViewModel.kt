@@ -1,57 +1,24 @@
 package mediacapture.io
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
-import androidx.camera.core.impl.utils.futures.FutureCallback
-import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.AndroidViewModel
-import com.google.common.util.concurrent.ListenableFuture
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import mediacapture.io.model.Media
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class MediaCaptureViewModel(
     application: Application,
-    retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase
+    retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase,
+    processCameraProviderUseCase: ProcessCameraProviderUseCase,
 ) : AndroidViewModel(application) {
 
     private val disposables = CompositeDisposable()
 
     private val TAG = this.javaClass.simpleName
-
-    // region camera x
     private lateinit var processCameraProvider: ProcessCameraProvider
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
-    private val listenableFuture: ListenableFuture<ProcessCameraProvider> =
-        ProcessCameraProvider.getInstance(application.applicationContext)
-
-    @SuppressLint("RestrictedApi")
-    private val processCameraProviderSingle = Single.create<ProcessCameraProvider> {
-
-        Futures.addCallback(
-            listenableFuture,
-
-            object : FutureCallback<ProcessCameraProvider> {
-                override fun onSuccess(result: ProcessCameraProvider?) {
-                    Log.i(TAG, "JEFFREYCUNNINGHAM: onSuccess: $result")
-                    it.onSuccess(result!!)
-                }
-
-                override fun onFailure(t: Throwable) {
-                    Log.i(TAG, "JEFFREYCUNNINGHAM: onFailure: error = $t")
-                    it.onError(t)
-                }
-
-            }, executorService
-        )
-    }
-    // endregion camera x
 
     // region user event
     fun onClick(clickEvent: ClickEvent) {
@@ -176,7 +143,7 @@ class MediaCaptureViewModel(
             Log.i(
                 TAG, "JEFFREYCUNNINGHAM: permissions have been granted, initializing Camera X:: "
             )
-            disposables.add(processCameraProviderSingle.subscribe { it ->
+            disposables.add(processCameraProviderUseCase.invoke().subscribe { it ->
                 processCameraProvider = it
                 viewStateSubject.onNext(
                     Initialized(

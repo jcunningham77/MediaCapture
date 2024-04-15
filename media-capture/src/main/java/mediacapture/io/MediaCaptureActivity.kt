@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -18,7 +17,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -72,7 +70,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -108,10 +105,11 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = MediaCaptureViewModel(this.application, retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver))
-
-
-
+        viewModel = MediaCaptureViewModel(
+            this.application,
+            retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver),
+            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application)
+        )
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
 
