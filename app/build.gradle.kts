@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -65,9 +67,17 @@ dependencies {
 
     implementation("com.google.android.exoplayer:exoplayer:2.18.7")
 
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
+
+
     implementation(project(mapOf("path" to ":media-capture"))) // local build
 //    implementation("com.github.jcunningham77:MediaCapture:v0.1.2-alpha")
 
     debugImplementation("androidx.compose.ui:ui-tooling:1.6.3")
 
+}
+
+kapt {
+    correctErrorTypes = true
 }

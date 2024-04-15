@@ -1,18 +1,26 @@
 package mediacapture.io
 
+import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import dagger.hilt.android.qualifiers.ActivityContext
+import dagger.hilt.android.scopes.ActivityScoped
+import dagger.hilt.android.scopes.ViewModelScoped
 import mediacapture.io.model.Media
 import java.text.SimpleDateFormat
 import java.util.Date
+import javax.inject.Inject
 
-class RetrieveRecentMediaUseCase(private val contentResolver: ContentResolver) :
+class RetrieveRecentMediaUseCase @Inject constructor(private val  contentResolver: ContentResolver) :
     Function0<List<Media>> {
     private val TAG = this.javaClass.simpleName
     override operator fun invoke(): List<Media> {
+
+//        val contentResolver = (context as Activity).contentResolver
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,

@@ -17,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -71,6 +72,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import mediacapture.io.livedata.observe
@@ -78,11 +80,15 @@ import mediacapture.io.model.Media
 import mediacapture.io.model.MediaType
 import mediacapture.io.ui.composables.ElapsedTimeView
 import mediacapture.io.ui.composables.FlipCameraButton
+import javax.inject.Inject
 
 @SuppressLint("ModifierParameter")
+@AndroidEntryPoint
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
-    private lateinit var viewModel: MediaCaptureViewModel
+
+
+    private val viewModel: MediaCaptureViewModel by viewModels()
     private lateinit var camera: Camera
 
     companion object {
@@ -105,11 +111,11 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = MediaCaptureViewModel(
-            this.application,
-            retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver),
-            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application)
-        )
+//        viewModel = MediaCaptureViewModel(
+//            this.application,
+//            retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver),
+//            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application)
+//        )
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
 
