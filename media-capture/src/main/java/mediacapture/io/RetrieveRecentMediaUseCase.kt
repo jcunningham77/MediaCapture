@@ -9,9 +9,10 @@ import mediacapture.io.model.Media
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class RetrieveRecentMediaUseCase(private val contentResolver: ContentResolver) {
+class RetrieveRecentMediaUseCase(private val contentResolver: ContentResolver) :
+    Function0<List<Media>> {
     private val TAG = this.javaClass.simpleName
-    operator fun invoke(): List<Media> {
+    override operator fun invoke(): List<Media> {
         val projection = arrayOf(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,
