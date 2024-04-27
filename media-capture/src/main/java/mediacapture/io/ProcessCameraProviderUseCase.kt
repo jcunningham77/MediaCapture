@@ -1,7 +1,6 @@
 package mediacapture.io
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
@@ -9,9 +8,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import com.google.common.util.concurrent.ListenableFuture
 import io.reactivex.rxjava3.core.Single
 import java.util.concurrent.Executors
+import javax.inject.Inject
+import javax.inject.Named
 
 
-class ProcessCameraProviderUseCase(private val context: Context) :
+class ProcessCameraProviderUseCase @Inject constructor(@Named("applicationContext") private val context: Context) :
     Function0<Single<ProcessCameraProvider>> {
     @SuppressLint("RestrictedApi")
     override fun invoke(): Single<ProcessCameraProvider> {
