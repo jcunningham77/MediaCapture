@@ -106,7 +106,7 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        DaggerInjector.appComponent(application.applicationContext)
+        val appComponent = DaggerInjector.appComponent(application.applicationContext)
 
         viewModel = MediaCaptureViewModel(
             this.application,
