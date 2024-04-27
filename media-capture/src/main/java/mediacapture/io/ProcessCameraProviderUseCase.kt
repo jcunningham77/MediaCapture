@@ -2,6 +2,7 @@ package mediacapture.io
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import androidx.camera.core.impl.utils.futures.FutureCallback
 import androidx.camera.core.impl.utils.futures.Futures
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -10,13 +11,13 @@ import io.reactivex.rxjava3.core.Single
 import java.util.concurrent.Executors
 
 
-class ProcessCameraProviderUseCase(private val application: Application) :
+class ProcessCameraProviderUseCase(private val context: Context) :
     Function0<Single<ProcessCameraProvider>> {
     @SuppressLint("RestrictedApi")
     override fun invoke(): Single<ProcessCameraProvider> {
         val executorService = Executors.newSingleThreadExecutor()
         val listenableFuture: ListenableFuture<ProcessCameraProvider> =
-            ProcessCameraProvider.getInstance(application.applicationContext)
+            ProcessCameraProvider.getInstance(context)
 
         return Single.create {
             Futures.addCallback(
@@ -35,5 +36,4 @@ class ProcessCameraProviderUseCase(private val application: Application) :
             )
         }
     }
-
 }

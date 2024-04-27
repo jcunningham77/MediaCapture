@@ -111,7 +111,7 @@ class MediaCaptureActivity : ComponentActivity() {
         viewModel = MediaCaptureViewModel(
             this.application,
             retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver),
-            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application)
+            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application.applicationContext)
         )
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
