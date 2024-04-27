@@ -8,8 +8,9 @@ import android.util.Log
 import mediacapture.io.model.Media
 import java.text.SimpleDateFormat
 import java.util.Date
+import javax.inject.Inject
 
-class RetrieveRecentMediaUseCase(private val contentResolver: ContentResolver) :
+class RetrieveRecentMediaUseCase @Inject constructor(private val contentResolver: ContentResolver) :
     Function0<List<Media>> {
     private val TAG = this.javaClass.simpleName
     override operator fun invoke(): List<Media> {
