@@ -73,6 +73,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
+import mediacapture.io.di.DaggerInjector
 import mediacapture.io.livedata.observe
 import mediacapture.io.model.Media
 import mediacapture.io.model.MediaType
@@ -104,6 +105,8 @@ class MediaCaptureActivity : ComponentActivity() {
     // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DaggerInjector.appComponent(application.applicationContext)
 
         viewModel = MediaCaptureViewModel(
             this.application,
