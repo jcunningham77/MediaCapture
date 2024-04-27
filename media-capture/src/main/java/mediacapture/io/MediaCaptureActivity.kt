@@ -73,16 +73,20 @@ import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
+import mediacapture.io.di.DaggerInjector
 import mediacapture.io.livedata.observe
 import mediacapture.io.model.Media
 import mediacapture.io.model.MediaType
 import mediacapture.io.ui.composables.ElapsedTimeView
 import mediacapture.io.ui.composables.FlipCameraButton
+import javax.inject.Inject
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
     private val TAG = this.javaClass.simpleName
-    private lateinit var viewModel: MediaCaptureViewModel
+
+    @Inject
+    lateinit var viewModel: MediaCaptureViewModel
     private lateinit var camera: Camera
 
     companion object {
@@ -105,11 +109,8 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = MediaCaptureViewModel(
-            this.application,
-            retrieveRecentMediaUseCase = RetrieveRecentMediaUseCase(contentResolver),
-            processCameraProviderUseCase = ProcessCameraProviderUseCase(this.application)
-        )
+        DaggerInjector.appComponent(application.applicationContext).mediaCaptureComponent()
+            .create(this.contentResolver).inject(this)
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
 

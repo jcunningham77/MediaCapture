@@ -1,19 +1,18 @@
 package mediacapture.io
 
-import android.app.Application
 import android.util.Log
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import mediacapture.io.model.Media
+import javax.inject.Inject
 
-class MediaCaptureViewModel(
-    application: Application,
+class MediaCaptureViewModel @Inject constructor(
     retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase,
     processCameraProviderUseCase: ProcessCameraProviderUseCase,
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val disposables = CompositeDisposable()
 
