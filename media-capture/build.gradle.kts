@@ -29,6 +29,10 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        debug {
+            enableUnitTestCoverage = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -77,6 +81,7 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation("org.mockito:mockito-inline:3.11.2")
     testImplementation("junit:junit:4.13")
 
     val daggerVersion = "2.51"
