@@ -6,6 +6,7 @@ plugins {
     id("kotlin-parcelize")
     id("maven-publish")
     id("kotlin-kapt")
+    jacoco
 }
 
 android {
@@ -97,6 +98,34 @@ android {
         // ...
     }
 }
+
+tasks.create("unitTestCoverageReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+
+        xml.closureOf<JacocoReport> { enabled = true }
+        html.closureOf<JacocoReport> { enabled = true }
+        csv.closureOf<JacocoReport> { enabled = false }
+
+    }
+
+    executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+
+    val classDirs = project.file("build/tmp/kotlin-classes/debugUnitTest/mediacapture/io/MediaCaptureViewModelTest.class")
+    additionalClassDirs(classDirs)
+
+    println("Project Build Dir = ${project.buildDir}")
+    println("project.projectDir = ${project.projectDir}")
+    val sourceDir :String = "${project.projectDir}/src/main/java"
+    println("sourceDir = $sourceDir")
+    val file = File(sourceDir)
+    additionalSourceDirs(file)
+
+}
+
+
+
 
 afterEvaluate {
     publishing {
