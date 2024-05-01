@@ -112,28 +112,14 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
 
     executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
 
-//    var androidSourceSetsForJacoco: SourceSet
-//    project.android.sourceSets {
-//        getByName("main") {
-//
-//            androidSourceSetsForJacoco = this.
-//        }
-//    }
-
-
-//    val classDirs = project.file("build/tmp/kotlin-classes/debugUnitTest/mediacapture/io/MediaCaptureViewModelTest.class")
-//    additionalClassDirs(classDirs)
-
+    val fileFilter = arrayOf("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "**/*Test*.*", "android/**/*.*")
+    val debugTree = fileTree("${project.buildDir}/intermediates/javac/debug") {
+        exclude(*fileFilter)
+}
+    this.classDirectories.from(debugTree)
 
     val mainSrc = "${project.projectDir}/src/main/java"
     this.sourceDirectories.from(mainSrc)
-
-    println("Project Build Dir = ${project.buildDir}")
-    println("project.projectDir = ${project.projectDir}")
-//    val sourceDir :String = "${project.projectDir}/src/main/java"
-//    println("sourceDir = $sourceDir")
-//    val file = File(sourceDir)
-//    additionalSourceDirs(file)
 
 }
 
