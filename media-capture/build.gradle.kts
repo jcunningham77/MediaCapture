@@ -130,10 +130,10 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
 
     println("Project Build Dir = ${project.buildDir}")
     println("project.projectDir = ${project.projectDir}")
-    val sourceDir :String = "${project.projectDir}/src/main/java"
-    println("sourceDir = $sourceDir")
-    val file = File(sourceDir)
-    additionalSourceDirs(file)
+//    val sourceDir :String = "${project.projectDir}/src/main/java"
+//    println("sourceDir = $sourceDir")
+//    val file = File(sourceDir)
+//    additionalSourceDirs(file)
 
 }
 
