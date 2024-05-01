@@ -121,8 +121,8 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
 //    }
 
 
-    val classDirs = project.file("build/tmp/kotlin-classes/debugUnitTest/mediacapture/io/MediaCaptureViewModelTest.class")
-    additionalClassDirs(classDirs)
+//    val classDirs = project.file("build/tmp/kotlin-classes/debugUnitTest/mediacapture/io/MediaCaptureViewModelTest.class")
+//    additionalClassDirs(classDirs)
 
 
     val mainSrc = "${project.projectDir}/src/main/java"
