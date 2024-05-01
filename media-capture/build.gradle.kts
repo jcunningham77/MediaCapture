@@ -116,7 +116,8 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
         "**/BuildConfig.*",
         "**/Manifest*.*",
         "**/*Test*.*",
-        "android/**/*.*"
+        "android/**/*.*",
+        "model/"
     )
 
     val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug/mediacapture/io") {
