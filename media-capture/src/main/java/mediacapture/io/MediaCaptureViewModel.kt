@@ -21,7 +21,6 @@ class MediaCaptureViewModel @Inject constructor(
 
     // region user event
     fun onClick(clickEvent: ClickEvent) {
-        Log.d(TAG, "onClick() JEFFREYCUNNINGHAM called with: clickEvent = $clickEvent")
         when (clickEvent) {
             FlipCameraClickEvent -> {
                 val cameraFacing = cameraFacingSelected.getOther()
