@@ -120,11 +120,12 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
         "**/*Test*.*",
         "android/**/*.*"
     )
-    val debugTree = fileTree("${project.buildDir}/intermediates/javac/debug") {
+
+    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug/mediacapture/io") {
         exclude(*fileFilter)
     }
     this.classDirectories.from(debugTree)
-    
+
     val mainSrc = "${project.projectDir}/src/main/java"
     this.sourceDirectories.from(mainSrc)
 
