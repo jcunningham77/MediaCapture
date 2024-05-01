@@ -112,12 +112,19 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
 
     executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
 
-    val fileFilter = arrayOf("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*", "**/*Test*.*", "android/**/*.*")
+    val fileFilter = arrayOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*"
+    )
     val debugTree = fileTree("${project.buildDir}/intermediates/javac/debug") {
         exclude(*fileFilter)
-}
+    }
     this.classDirectories.from(debugTree)
-
+    
     val mainSrc = "${project.projectDir}/src/main/java"
     this.sourceDirectories.from(mainSrc)
 
