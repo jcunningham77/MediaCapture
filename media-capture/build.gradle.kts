@@ -104,7 +104,7 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
 
     reports {
 
-        xml.closureOf<JacocoReport> { enabled = true }
+        xml.closureOf<JacocoReport> { enabled = false }
         html.closureOf<JacocoReport> { enabled = true }
         csv.closureOf<JacocoReport> { enabled = false }
 
