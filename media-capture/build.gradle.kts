@@ -103,11 +103,9 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
 
     reports {
-
         xml.closureOf<JacocoReport> { enabled = false }
         html.closureOf<JacocoReport> { enabled = true }
         csv.closureOf<JacocoReport> { enabled = false }
-
     }
 
     executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
@@ -130,9 +128,6 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
     this.sourceDirectories.from(mainSrc)
 
 }
-
-
-
 
 afterEvaluate {
     publishing {
