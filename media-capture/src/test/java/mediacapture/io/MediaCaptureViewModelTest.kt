@@ -34,6 +34,21 @@ class MediaCaptureViewModelTest {
 
         viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
 
-        testObserver.assertValueAt(1) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK }
+        testObserver.assertValueAt(1) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
+
+
+        viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
+
+        testObserver.assertValueAt(2) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
+
+
+        viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
+
+        testObserver.assertValueAt(3) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING }
+
+        viewModel.onClick(MediaCaptureViewModel.StopClickEvent)
+
+        testObserver.assertValueAt(4) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED }
+
     }
 }

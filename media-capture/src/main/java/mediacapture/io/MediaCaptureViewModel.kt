@@ -37,7 +37,7 @@ class MediaCaptureViewModel @Inject constructor(
             RecordClickEvent -> {
                 viewStateSubject.onNext(
                     Initialized(
-                        processCameraProvider, recordingState = RecordingState.RECORDING
+                        processCameraProvider, recordingState = RecordingState.RECORDING, cameraFacing = cameraFacingSelected
                     )
                 )
             }
@@ -45,7 +45,7 @@ class MediaCaptureViewModel @Inject constructor(
             StopClickEvent -> {
                 viewStateSubject.onNext(
                     Initialized(
-                        processCameraProvider, recordingState = RecordingState.STOPPED
+                        processCameraProvider, recordingState = RecordingState.STOPPED, cameraFacing = cameraFacingSelected
                     )
                 )
             }
@@ -115,6 +115,7 @@ class MediaCaptureViewModel @Inject constructor(
     val viewState: Observable<ViewState> = viewStateSubject.hide()
 
     // TODO default this to last used
+    // TODO probably should be replaced with subject
     private var cameraFacingSelected = CameraFacing.FRONT
 
     sealed class ViewState
