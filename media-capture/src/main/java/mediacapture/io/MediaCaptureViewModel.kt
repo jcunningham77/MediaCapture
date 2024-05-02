@@ -1,6 +1,5 @@
 package mediacapture.io
 
-import android.util.Log
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.core.Observable
@@ -16,7 +15,6 @@ class MediaCaptureViewModel @Inject constructor(
 
     private val disposables = CompositeDisposable()
 
-    private val TAG = this.javaClass.simpleName
     private lateinit var processCameraProvider: ProcessCameraProvider
 
     // region user event
