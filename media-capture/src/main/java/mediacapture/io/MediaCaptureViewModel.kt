@@ -137,16 +137,16 @@ class MediaCaptureViewModel @Inject constructor(
 
     init {
         val initializationViewStateDisposable = permissionsGrantedSubject.subscribe {
-//            disposables.add(processCameraProviderUseCase.invoke().subscribe { it ->
-//                processCameraProvider = it
-//                viewStateSubject.onNext(
-//                    Initialized(
-//                        processCameraProvider,
-//                        recordingState = RecordingState.INITIALIZED,
-//                        cameraFacing = cameraFacingSelected,
-//                    )
-//                )
-//            })
+            disposables.add(processCameraProviderUseCase.invoke().subscribe { it ->
+                processCameraProvider = it
+                viewStateSubject.onNext(
+                    Initialized(
+                        processCameraProvider,
+                        recordingState = RecordingState.INITIALIZED,
+                        cameraFacing = cameraFacingSelected,
+                    )
+                )
+            })
         }
         disposables.add(initializationViewStateDisposable)
     }
