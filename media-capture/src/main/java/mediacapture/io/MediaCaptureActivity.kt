@@ -52,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -83,20 +84,16 @@ import javax.inject.Inject
 
 @SuppressLint("ModifierParameter")
 class MediaCaptureActivity : ComponentActivity() {
-    private val TAG = this.javaClass.simpleName
+
 
     @Inject
     lateinit var viewModel: MediaCaptureViewModel
     private lateinit var camera: Camera
 
     companion object {
-        const val VIDEO_URI = "video.uri"
         const val VIDEO_MAX_LENGTH = 60
         const val MEDIA_EXTRA = "MEDIA_EXTRA"
-
-        fun start() {
-
-        }
+        private val TAG = this@Companion::class.java.simpleName
     }
 
     private val mutableViewState: MutableState<MediaCaptureViewModel.ViewState> =
@@ -109,8 +106,11 @@ class MediaCaptureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        DaggerInjector.appComponent(application.applicationContext).mediaCaptureComponent()
-            .create(this.contentResolver).inject(this)
+        DaggerInjector
+            .appComponent(application.applicationContext)
+            .mediaCaptureComponent()
+            .create(this.contentResolver)
+            .inject(this)
 
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionMap ->
 
@@ -121,11 +121,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 val permission = entries.key
                 val permissionGranted = entries.value
 
-
-                Log.i(
-                    TAG,
-                    "JEFFREYCUNNINGHAM: onCreate: permission: $permission status: $permissionGranted"
-                )
+                Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: permission: $permission status: $permissionGranted")
                 if (!permissionGranted) {
                     permissionDenied = true
                 }
@@ -134,24 +130,17 @@ class MediaCaptureActivity : ComponentActivity() {
 
             if (permissionDenied) {
                 Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: user rejected permissions")
-                Toast.makeText(
-                    this,
-                    "Sorry, you need to grant Camera and Audio permissions to use this feature",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast
+                    .makeText(this, "Sorry, you need to grant Camera and Audio permissions to use this feature", Toast.LENGTH_SHORT)
+                    .show()
                 this.finish()
 
             } else {
-                Log.i(
-                    TAG,
-                    "JEFFREYCUNNINGHAM: onCreate: permissions granted, let's initialize the Camera X"
-                )
+                Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: permissions granted, let's initialize the Camera X")
                 viewModel.permissionsGranted()
             }
 
-
         }.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
-
 
     }
 
@@ -185,7 +174,7 @@ class MediaCaptureActivity : ComponentActivity() {
             Log.i(TAG, "JEFFREYCUNNINGHAM: onResume: most recent media = $it")
             val intent = Intent()
             intent.putExtra(MEDIA_EXTRA, it)
-            setResult(RESULT_OK, intent);
+            setResult(RESULT_OK, intent)
             Log.i(TAG, "JEFFREYCUNNINGHAM: setting intent: $intent, calling finish")
             finish()
         }
@@ -199,17 +188,13 @@ class MediaCaptureActivity : ComponentActivity() {
         mutableMediaList: MutableState<List<Media>>,
         activity: ComponentActivity,
     ) {
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: ConstraintLayoutContent: mutableViewState = ${mutableViewState.value}"
-        )
+        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: mutableViewState = ${mutableViewState.value}")
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
         ) {
             val viewState = mutableViewState.value
             val (previewSurfaceRef, thumbGalleryRef, flipCameraButtonRef, recordButtonRef, elapsedTimeRef) = createRefs()
-
 
             val previewModifier = Modifier.constrainAs(previewSurfaceRef) {
                 top.linkTo(parent.top)
@@ -272,11 +257,6 @@ class MediaCaptureActivity : ComponentActivity() {
             if (mutableMediaList.value.isNotEmpty()) {
                 LazyRow(modifier = thumbGalleryLayoutModifier) {
                     items(mutableMediaList.value) { media ->
-
-                        Log.i(
-                            TAG,
-                            "JEFFREYCUNNINGHAM: ConstraintLayoutContent: item URI = ${media.uri}"
-                        )
                         val thumbnail: Bitmap =
                             applicationContext.contentResolver.loadThumbnail(
                                 media.uri, Size(640, 480), null
@@ -297,9 +277,7 @@ class MediaCaptureActivity : ComponentActivity() {
                                         finish()
                                     })
                             }
-                            Box(modifier = Modifier.clickable(onClick = {
-                                showDialog.value = true
-                            })) {
+                            Box(modifier = Modifier.clickable(onClick = { showDialog.value = true })) {
                                 Image(
                                     modifier = Modifier
                                         .padding(horizontal = 2.dp)
@@ -307,8 +285,7 @@ class MediaCaptureActivity : ComponentActivity() {
                                     bitmap = thumbnail.asImageBitmap(),
                                     contentDescription = "Thumbnail",
                                     contentScale = ContentScale.Crop,
-
-                                    )
+                                )
                                 Icon(
                                     painter = painterResource(id = R.drawable.baseline_videocam_24),
                                     contentDescription = "VideoType",
@@ -324,9 +301,8 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-            if (viewState is MediaCaptureViewModel.PendingInitialization
-                || (viewState is MediaCaptureViewModel.Initialized &&
-                        viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
+            if (viewState is MediaCaptureViewModel.PendingInitialization ||
+                (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState != MediaCaptureViewModel.RecordingState.STOPPED)
             ) {
                 RecordButton(recordButtonLayoutModifier, mutableViewState)
             } else {
@@ -335,7 +311,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     modifier = recordButtonLayoutModifier,
                     color = colorResource(R.color.white),
                     fontSize = TextUnit(20f, TextUnitType.Sp),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
@@ -382,7 +358,6 @@ class MediaCaptureActivity : ComponentActivity() {
                     PreviewView(context).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
                     }
-
                 },
                 update = {
                     if (viewState.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED) {
@@ -408,7 +383,7 @@ class MediaCaptureActivity : ComponentActivity() {
     @Composable
     fun RecordButton(
         layoutModifier: Modifier,
-        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>
+        mutableViewState: MutableState<MediaCaptureViewModel.ViewState>,
     ) {
 
         val viewState = mutableViewState.value
@@ -447,7 +422,7 @@ class MediaCaptureActivity : ComponentActivity() {
             )
             if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
                 var progress by remember {
-                    mutableStateOf(0f)
+                    mutableFloatStateOf(0f)
                 }
 
                 LaunchedEffect(key1 = true, block = {
@@ -460,14 +435,13 @@ class MediaCaptureActivity : ComponentActivity() {
                 })
                 CircularProgressIndicator(
                     color = Color.Red, modifier = layoutModifier,
-                    progress = progress
+                    progress = { progress }
                 )
             }
         }
 
 
     }
-
     // endregion composable
 
     // region camera x members
@@ -481,22 +455,12 @@ class MediaCaptureActivity : ComponentActivity() {
                     Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
                     if (!event.hasError()) {
                         // update app internal state
-                        Log.i(
-                            TAG,
-                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
-                        )
+                        Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}")
                         viewModel.fetchMostRecentMedia()
                     } else {
-                        Log.i(
-                            TAG,
-                            "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
-                        )
+                        Log.i(TAG, "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}")
 
-                        Log.e(
-                            TAG,
-                            event.cause?.message,
-                            event.cause
-                        )
+                        Log.e(TAG, event.cause?.message, event.cause)
                         recording = null
                     }
                 }
@@ -566,19 +530,13 @@ class MediaCaptureActivity : ComponentActivity() {
             ContextCompat.getMainExecutor(this.baseContext),
             createRecordingListener()
         )
-        Log.i(
-            TAG,
-            "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}"
-        )
+        Log.i(TAG, "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}")
     }
 
     private fun stopRecording() {
 
         if (recording != null) {
-            Log.i(
-                TAG,
-                "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}"
-            )
+            Log.i(TAG, "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}")
             recording!!.stop()
         } else {
             Log.i(TAG, "stopRecording:  recording is NULL")
