@@ -1,7 +1,9 @@
 package mediacapture.io
 
+import android.net.Uri
 import androidx.camera.lifecycle.ProcessCameraProvider
 import io.reactivex.rxjava3.core.Single
+import mediacapture.io.model.Media
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -12,7 +14,9 @@ class MediaCaptureViewModelTest {
     fun `Happy path`() {
 
         val processCameraProviderMock = mock<ProcessCameraProvider>()
-        val retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase = mock()
+        val retrieveRecentMediaUseCase: RetrieveRecentMediaUseCase = mock() {
+            on { invoke() } doReturn createTestMedia()
+        }
         val processCameraProviderUseCase: ProcessCameraProviderUseCase = mock {
             on { invoke() } doReturn Single.just(processCameraProviderMock)
         }
@@ -20,13 +24,13 @@ class MediaCaptureViewModelTest {
         val viewModel =
             MediaCaptureViewModel(retrieveRecentMediaUseCase, processCameraProviderUseCase)
 
-        val testObserver = viewModel.viewState.test()
+        val viewStateTestObserver = viewModel.viewState.test()
 
-        testObserver.assertEmpty()
+        viewStateTestObserver.assertEmpty()
 
         viewModel.permissionsGranted()
 
-        testObserver.assertValue {
+        viewStateTestObserver.assertValue {
             it is MediaCaptureViewModel.Initialized
                     && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED
                     && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT
@@ -34,21 +38,47 @@ class MediaCaptureViewModelTest {
 
         viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
 
-        testObserver.assertValueAt(1) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
+        viewStateTestObserver.assertValueAt(1) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
 
 
         viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
 
-        testObserver.assertValueAt(2) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
+        viewStateTestObserver.assertValueAt(2) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
 
 
         viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
 
-        testObserver.assertValueAt(3) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING }
+        viewStateTestObserver.assertValueAt(3) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING }
 
         viewModel.onClick(MediaCaptureViewModel.StopClickEvent)
 
-        testObserver.assertValueAt(4) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED }
+        viewStateTestObserver.assertValueAt(4) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED }
 
+        val mostRecentMediaTestObserver = viewModel.mostRecentMedia.test()
+
+        viewModel.fetchMostRecentMedia()
+
+        val expectedMedia = createTestMedia().first()
+
+        mostRecentMediaTestObserver.assertValue { it.name == expectedMedia.name }
+
+    }
+
+
+    private fun createTestMedia(): List<Media> {
+        val media = mutableListOf<Media>()
+        for (i in 1..5) {
+            media.add(
+                Media(
+                    uri = mock(),
+                    name = "TestName$i",
+                    duration = 50,
+                    size = 100,
+                    mediaStoreId = 200,
+                    dateTakenMillis = 1718998879786
+                )
+            )
+        }
+        return media
     }
 }

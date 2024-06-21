@@ -259,7 +259,7 @@ class MediaCaptureActivity : ComponentActivity() {
                     items(mutableMediaList.value) { media ->
                         val thumbnail: Bitmap =
                             applicationContext.contentResolver.loadThumbnail(
-                                media.uri, Size(640, 480), null
+                                media.uri!!, Size(640, 480), null
                             )
 
                         if (media.mediaType == MediaType.VIDEO) {
