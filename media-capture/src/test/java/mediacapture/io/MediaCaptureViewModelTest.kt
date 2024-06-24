@@ -1,6 +1,5 @@
 package mediacapture.io
 
-import android.net.Uri
 import androidx.camera.lifecycle.ProcessCameraProvider
 import io.reactivex.rxjava3.core.Single
 import mediacapture.io.model.Media
@@ -38,29 +37,52 @@ class MediaCaptureViewModelTest {
 
         viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
 
-        viewStateTestObserver.assertValueAt(1) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
-
+        viewStateTestObserver.assertValueAt(1) {
+            it is MediaCaptureViewModel.Initialized &&
+                    it.cameraFacing == MediaCaptureViewModel.CameraFacing.BACK &&
+                    it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED
+        }
 
         viewModel.onClick(MediaCaptureViewModel.FlipCameraClickEvent)
 
-        viewStateTestObserver.assertValueAt(2) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED }
-
+        viewStateTestObserver.assertValueAt(2) {
+            it is MediaCaptureViewModel.Initialized &&
+                    it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT &&
+                    it.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED
+        }
 
         viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
 
-        viewStateTestObserver.assertValueAt(3) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING }
+        viewStateTestObserver.assertValueAt(3) {
+            it is MediaCaptureViewModel.Initialized &&
+                    it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT &&
+                    it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING
+        }
 
         viewModel.onClick(MediaCaptureViewModel.StopClickEvent)
 
-        viewStateTestObserver.assertValueAt(4) { it is MediaCaptureViewModel.Initialized && it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT && it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED }
+        viewStateTestObserver.assertValueAt(4) {
+            it is MediaCaptureViewModel.Initialized &&
+                    it.cameraFacing == MediaCaptureViewModel.CameraFacing.FRONT &&
+                    it.recordingState == MediaCaptureViewModel.RecordingState.STOPPED
+        }
+
 
         val mostRecentMediaTestObserver = viewModel.mostRecentMedia.test()
 
         viewModel.fetchMostRecentMedia()
 
-        val expectedMedia = createTestMedia().first()
+        val expectedExistingMedia = createTestMedia()
 
-        mostRecentMediaTestObserver.assertValue { it.name == expectedMedia.name }
+        val expectedMostRecentMedia = expectedExistingMedia.first()
+
+        mostRecentMediaTestObserver.assertValue { it.name == expectedMostRecentMedia.name }
+
+        val existingMediaTestObserver = viewModel.existingMedia.test()
+
+        viewModel.triggerMediaQuery()
+
+        existingMediaTestObserver.assertValue { it.size == expectedExistingMedia.size }
 
     }
 
