@@ -103,9 +103,8 @@ tasks.create("unitTestCoverageReport", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
 
     reports {
-        xml.closureOf<JacocoReport> { enabled = false }
-        html.closureOf<JacocoReport> { enabled = true }
-        csv.closureOf<JacocoReport> { enabled = false }
+        html.required = true
+        csv.required = true
     }
 
     executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
