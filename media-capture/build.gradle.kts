@@ -80,10 +80,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.2")
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
+    implementation("androidx.test.ext:junit-ktx:1.2.1")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("org.mockito:mockito-inline:3.11.2")
     testImplementation("junit:junit:4.13")
+
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
 
     val daggerVersion = "2.51"
     implementation("com.google.dagger:dagger:$daggerVersion")
@@ -96,6 +101,10 @@ android {
             withSourcesJar()
         }
         // ...
+    }
+
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 
