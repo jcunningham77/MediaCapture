@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import mediacapture.io.R
@@ -37,7 +38,7 @@ fun FlipCameraButton(layoutModifier: Modifier, clickListener: () -> Unit) {
         content = {
             Image(
                 painterResource(id = R.drawable.baseline_flip_camera_android_24),
-                contentDescription = null,
+                contentDescription = "Flip Camera Button",
                 modifier = layoutModifier
                     .size(100.dp)
                     .rotate(angle)

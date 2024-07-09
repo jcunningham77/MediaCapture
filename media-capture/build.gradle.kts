@@ -86,9 +86,7 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:3.11.2")
     testImplementation("junit:junit:4.13")
 
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.test:runner:1.6.1")
-    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4-android")
 
     val daggerVersion = "2.51"
     implementation("com.google.dagger:dagger:$daggerVersion")
@@ -110,6 +108,7 @@ android {
 
 tasks.create("unitTestCoverageReport", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
+    dependsOn("connectedAndroidTest")
 
     reports {
         html.required = true

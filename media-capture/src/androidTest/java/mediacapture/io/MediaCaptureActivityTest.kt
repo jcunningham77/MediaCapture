@@ -1,16 +1,21 @@
 package mediacapture.io
 
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.filters.LargeTest
 import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-@LargeTest
+
 class MediaCaptureActivityTest {
     @get:Rule
-    val activityRule = ActivityScenarioRule(MediaCaptureActivity::class.java)
+    val composeRule = createAndroidComposeRule(MediaCaptureActivity::class.java)
 
-
+    @Test
+    fun flipButtonTest() {
+        composeRule.onNodeWithContentDescription("Flip Camera Button").assertIsDisplayed()
+    }
 }
