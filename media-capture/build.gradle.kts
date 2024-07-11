@@ -81,6 +81,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.2")
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
     implementation("androidx.test.ext:junit-ktx:1.2.1")
+    implementation("androidx.test:rules:1.6.1")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
     testImplementation("org.mockito:mockito-inline:3.11.2")

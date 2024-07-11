@@ -1,9 +1,12 @@
 package mediacapture.io
 
+import android.Manifest
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
+import androidx.test.rule.GrantPermissionRule.grant
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,6 +16,12 @@ import org.junit.runner.RunWith
 class MediaCaptureActivityTest {
     @get:Rule
     val composeRule = createAndroidComposeRule(MediaCaptureActivity::class.java)
+
+    @get:Rule
+    val permissionRule: GrantPermissionRule = grant(
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO,
+    )
 
     @Test
     fun flipButtonTest() {
