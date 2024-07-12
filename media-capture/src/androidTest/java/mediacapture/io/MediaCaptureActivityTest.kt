@@ -2,8 +2,10 @@ package mediacapture.io
 
 import android.Manifest
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import androidx.test.rule.GrantPermissionRule.grant
@@ -24,7 +26,12 @@ class MediaCaptureActivityTest {
     )
 
     @Test
-    fun flipButtonTest() {
+    fun happyPathTest() {
         composeRule.onNodeWithContentDescription("Flip Camera Button").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Record").assertIsDisplayed().performClick()
+
+        composeRule.onNodeWithContentDescription("Record").assertIsNotDisplayed()
+        composeRule.onNodeWithContentDescription("Stop").assertIsDisplayed()
+
     }
 }

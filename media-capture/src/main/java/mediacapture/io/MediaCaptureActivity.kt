@@ -391,18 +391,22 @@ class MediaCaptureActivity : ComponentActivity() {
         var clickListener: () -> Unit = {}
         var drawableInt = 0
         var enabled = false
+        var contentDescription = ""
 
         if (viewState is MediaCaptureViewModel.PendingInitialization) {
             drawableInt = R.drawable.baseline_fiber_manual_record_24
             enabled = false
+            contentDescription = "Record"
         } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED) {
             clickListener = { viewModel.onClick(MediaCaptureViewModel.RecordClickEvent) }
             drawableInt = R.drawable.baseline_fiber_manual_record_24
             enabled = true
+            contentDescription = "Record"
         } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) { // we are recording
             clickListener = { viewModel.onClick(MediaCaptureViewModel.StopClickEvent) }
             drawableInt = R.drawable.baseline_stop_24
             enabled = true
+            contentDescription = "Stop"
         }
 
         Box(layoutModifier) {
@@ -413,7 +417,7 @@ class MediaCaptureActivity : ComponentActivity() {
                 content = {
                     Image(
                         painter = painterResource(id = drawableInt),
-                        contentDescription = null,
+                        contentDescription = contentDescription,
                         modifier = layoutModifier
                             .size(100.dp)
 
