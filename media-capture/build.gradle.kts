@@ -107,7 +107,8 @@ android {
     }
 }
 
-tasks.create("unitTestCoverageReport", JacocoReport::class) {
+// requires emulator or physical device to be running locally
+tasks.create("unitTestCoverageReportLocal", JacocoReport::class) {
     dependsOn("testDebugUnitTest")
     dependsOn("connectedAndroidTest")
 
