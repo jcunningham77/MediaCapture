@@ -33,8 +33,11 @@ android {
 
         debug {
             enableUnitTestCoverage = true
+            // required for connected tests
+            isTestCoverageEnabled = true
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -48,6 +51,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
     }
+}
+
+jacoco {
+    toolVersion = "0.8.7"
 }
 
 dependencies {
@@ -107,17 +114,19 @@ android {
     }
 }
 
-// requires emulator or physical device to be running locally
-tasks.create("unitTestCoverageReportLocal", JacocoReport::class) {
-    dependsOn("testDebugUnitTest")
-    dependsOn("connectedAndroidTest")
+tasks.register<JacocoReport>("mergeDebugCoverageReports") {
+    group = "Reporting"
+    description = "Merge JaCoCo coverage reports for debug."
+    dependsOn("testDebugUnitTest", "connectedDebugAndroidTest")
 
-    reports {
-        html.required = true
-        csv.required = true
+    val coverageFiles = fileTree("$buildDir") {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        include("outputs/code_coverage/debugAndroidTest/connected/**/*.ec")
     }
 
-    executionData("${project.buildDir}/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    val srcDirs = files("src/main/java", "src/main/kotlin")
+
+    sourceDirectories.setFrom(srcDirs)
 
     val fileFilter = arrayOf(
         "**/R.class",
@@ -134,9 +143,19 @@ tasks.create("unitTestCoverageReportLocal", JacocoReport::class) {
     }
     this.classDirectories.from(debugTree)
 
-    val mainSrc = "${project.projectDir}/src/main/java"
-    this.sourceDirectories.from(mainSrc)
+    executionData.setFrom(coverageFiles)
 
+    reports {
+        csv.required = true
+        html.required = true
+    }
+}
+
+tasks.register("runCoverageDebug") {
+    group = "Verification"
+    description = "Run both unit and instrumented tests and generate a merged coverage report for debug."
+
+    dependsOn("testDebugUnitTest", "connectedDebugAndroidTest", "mergeDebugCoverageReports")
 }
 
 afterEvaluate {

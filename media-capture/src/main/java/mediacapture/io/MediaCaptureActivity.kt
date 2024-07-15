@@ -105,6 +105,7 @@ class MediaCaptureActivity : ComponentActivity() {
     // region activity lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        println("onCreate 1 ")
 
         DaggerInjector
             .appComponent(application.applicationContext)
@@ -398,12 +399,18 @@ class MediaCaptureActivity : ComponentActivity() {
             enabled = false
             contentDescription = "Record"
         } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.INITIALIZED) {
-            clickListener = { viewModel.onClick(MediaCaptureViewModel.RecordClickEvent) }
+            clickListener = {
+                println("record button click 1")
+                viewModel.onClick(MediaCaptureViewModel.RecordClickEvent)
+            }
             drawableInt = R.drawable.baseline_fiber_manual_record_24
             enabled = true
             contentDescription = "Record"
         } else if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) { // we are recording
-            clickListener = { viewModel.onClick(MediaCaptureViewModel.StopClickEvent) }
+            clickListener = {
+                println("record button click 2")
+                viewModel.onClick(MediaCaptureViewModel.StopClickEvent)
+            }
             drawableInt = R.drawable.baseline_stop_24
             enabled = true
             contentDescription = "Stop"
