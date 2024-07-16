@@ -21,5 +21,5 @@ implementation("com.github.jcunningham77:MediaCapture:v0.1.2-alpha")
 ### Code Coverage (Unit Test):
 To run Jacoco Code Coverage report:
 ```
- ./gradlew media-capture:unitTestCoverageReport
+ ./gradlew media-capture:runDebugCoverageReport
 ```

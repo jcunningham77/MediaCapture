@@ -151,7 +151,7 @@ tasks.register<JacocoReport>("mergeDebugCoverageReports") {
     }
 }
 
-tasks.register("runCoverageDebug") {
+tasks.register("runDebugCoverageReport") {
     group = "Verification"
     description = "Run both unit and instrumented tests and generate a merged coverage report for debug."
 
