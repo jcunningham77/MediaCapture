@@ -36,6 +36,12 @@ android {
             // required for connected tests
             isTestCoverageEnabled = true
         }
+
+        testOptions {
+            unitTests.isIncludeAndroidResources = true
+            animationsDisabled = true
+        }
+
     }
     
     compileOptions {
