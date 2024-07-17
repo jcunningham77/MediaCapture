@@ -1,5 +1,8 @@
 set -e
 
+echo "ANDROID_SDK_ROOT = $ANDROID_SDK_ROOT"
+echo "ANDROID_HOME = $ANDROID_HOME"
+
 # Start the Android emulator
 emulator -avd test -no-audio -no-window &
 
