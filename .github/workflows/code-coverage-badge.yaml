@@ -19,12 +19,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
       - name: Run Code Coverage Report
-        run: ./gradlew media-capture:runDebugCoverageReport
+        run: ./gradlew media-capture:runDebugCoverageReportGitHub
       - name: Generate Code Coverage Badge
         uses: cicirello/jacoco-badge-generator@v2
         id: jacoco
         with:
-          jacoco-csv-file: media-capture/build/reports/jacoco/mergeDebugCoverageReports/mergeDebugCoverageReports.csv
+          jacoco-csv-file: media-capture/build/reports/jacoco/mergeDebugCoverageReportGitHub/mergeDebugCoverageReports.csv
       - name: Log coverage percentage
         run: |
           echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
