@@ -18,6 +18,8 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
       - name: Start emulator
         run: ./start-emulator.sh
       - name: Run Code Coverage Report
