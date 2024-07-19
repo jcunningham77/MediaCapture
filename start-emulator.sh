@@ -20,10 +20,11 @@ emulator -list-avds
 
 sdkmanager --install "system-images;android-35;google_apis_playstore;arm64-v8a"
 
+echo "listing devices"
 avdmanager list device
 
 # Example
-avdmanager create avd -n "pixel8-Android35" -k "system-images;android-35;google_apis_playstore;arm64-v8a" --device "Pixel_4"
+avdmanager create avd -n "pixel8-Android35" -k "system-images;android-35;google_apis_playstore;arm64-v8a" --device "pixel_5"
 
 echo "list of AVDs: (2)"
 emulator -list-avds
