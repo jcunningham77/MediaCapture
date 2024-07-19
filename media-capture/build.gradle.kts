@@ -43,7 +43,7 @@ android {
         }
 
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -159,56 +159,11 @@ tasks.register<JacocoReport>("mergeDebugCoverageReports") {
 
 tasks.register("runDebugCoverageReport") {
     group = "Verification"
-    description = "Run both unit and instrumented tests and generate a merged coverage report for debug."
+    description =
+        "Run both unit and instrumented tests and generate a merged coverage report for debug."
 
     dependsOn("testDebugUnitTest", "connectedDebugAndroidTest", "mergeDebugCoverageReports")
 }
-
-tasks.register<JacocoReport>("mergeDebugCoverageReportsGitHub") {
-    group = "Reporting"
-    description = "Merge JaCoCo coverage reports for debug."
-//    dependsOn("testDebugUnitTest", "connectedDebugAndroidTest")
-
-    val coverageFiles = fileTree("$buildDir") {
-        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
-        include("outputs/code_coverage/debugAndroidTest/connected/**/*.ec")
-    }
-
-    val srcDirs = files("src/main/java", "src/main/kotlin")
-
-    sourceDirectories.setFrom(srcDirs)
-
-    val fileFilter = arrayOf(
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        "model/"
-    )
-
-    val debugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug/mediacapture/io") {
-        exclude(*fileFilter)
-    }
-    this.classDirectories.from(debugTree)
-
-    executionData.setFrom(coverageFiles)
-
-    reports {
-        csv.required = true
-        html.required = true
-    }
-}
-
-tasks.register("runDebugCoverageReportGitHub") {
-    group = "Verification"
-    description = "Run both unit and instrumented tests and generate a merged coverage report for debug."
-
-    dependsOn("mergeDebugCoverageReportsGitHub")
-}
-
-
 
 afterEvaluate {
     publishing {
