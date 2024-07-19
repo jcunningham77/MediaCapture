@@ -24,13 +24,17 @@ echo "listing devices"
 avdmanager list device
 
 # Example
-avdmanager create avd -n "pixel8-Android35" -k "system-images;android-35;google_apis_playstore;arm64-v8a" --device "pixel_5"
+avdmanager create avd -n "pixel_5-Android35" -k "system-images;android-35;google_apis_playstore;arm64-v8a" --device "pixel_5"
 
 echo "list of AVDs: (2)"
 emulator -list-avds
 
+scho "starting emulator"
+emulator -avd pixel_5-Android35 -no-audio -no-window &
 
 # Wait for the emulator to fully boot
-#adb wait-for-device
-#adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
-#adb shell input keyevent 82
+adb wait-for-device
+
+scho "starting emulator - after wait-for-device"
+adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
+adb shell input keyevent 82
