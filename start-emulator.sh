@@ -13,24 +13,24 @@ echo "list of AVDs: (1)"
 emulator -list-avds
 
 # List available system images
-#echo "list of system images:"
-#sdkmanager --list | grep system-images
+echo "list of system images:"
+sdkmanager --list | grep system-images
 
 
 
-sdkmanager --install "system-images;android-35;google_apis_playstore;arm64-v8a"
+sdkmanager --install "system-images;android-27;default;x86"
 
 echo "listing devices"
 avdmanager list device
 
 # Example
-avdmanager create avd -n "pixel_5-Android35" -k "system-images;android-35;google_apis_playstore;arm64-v8a" --device "pixel_5"
+avdmanager create avd -n "pixel_5-Android27" -k "system-images;android-27;default;x86" --device "pixel_5"
 
 echo "list of AVDs: (2)"
 emulator -list-avds
 
 echo "starting emulator"
-emulator -avd pixel_5-Android35 -no-audio -no-window &
+emulator -avd pixel_5-Android27 -no-audio -no-window &
 
 # Wait for the emulator to fully boot
 #timeout 40 adb wait-for-device
