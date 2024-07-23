@@ -29,7 +29,9 @@ avdmanager create avd -n "pixel_5-Android27" -k "system-images;android-27;defaul
 echo "list of AVDs: (2)"
 emulator -list-avds
 
-echo "$USER"
+echo "current user: $USER"
+sudo gpasswd -a $USER kvm
+
 echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
 
