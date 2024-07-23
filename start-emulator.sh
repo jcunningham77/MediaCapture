@@ -32,6 +32,11 @@ emulator -list-avds
 echo "current user: $USER"
 sudo gpasswd -a $USER kvm
 
+echo "current processor:"
+lscpu
+
+
+
 echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
 
