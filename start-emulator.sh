@@ -38,6 +38,18 @@ lscpu
 #echo "Check whether a hypervisor is installed"
 #emulator -accel-check
 
+echo "installing cpu checker"
+
+sudo apt-get install cpu-checker
+egrep -c '(vmx|svm)' /proc/cpuinfo
+
+echo "check above output: An output of 1 or greater means that virtualization is supported. An output of 0 means that your CPU doesn't support hardware virtualization."
+
+echo "running kvm-ok:"
+sudo kvm-ok
+
+
+
 echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
 
