@@ -35,14 +35,6 @@ sudo gpasswd -a $USER kvm
 echo "current processor:"
 lscpu
 
-echo "logging out using gnome session quit"
-gnome-session-quit --logout --no-prompt
-
-echo "logging back in using gnome-session"
-gnome-session
-
-
-
 echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
 
