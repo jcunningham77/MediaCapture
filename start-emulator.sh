@@ -35,8 +35,8 @@ sudo gpasswd -a $USER kvm
 echo "current processor:"
 lscpu
 
-echo "Check whether a hypervisor is installed"
-emulator -accel-check
+#echo "Check whether a hypervisor is installed"
+#emulator -accel-check
 
 echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
