@@ -54,7 +54,8 @@ echo "starting emulator"
 emulator -avd pixel_5-Android27 -no-audio -no-window &
 
 # Wait for the emulator to fully boot
-#timeout 40 adb wait-for-device
+adb wait-for-device
+echo "after wait for device emulator"
 
 #echo "starting emulator - after wait-for-device"
 #adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done;'
