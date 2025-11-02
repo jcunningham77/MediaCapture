@@ -19,6 +19,7 @@ class MediaCaptureViewModel @Inject constructor(
 
     // region user event
     fun onClick(clickEvent: ClickEvent) {
+        println("JRC onClick called with: $clickEvent, stacktrace: ${Thread.currentThread().stackTrace[3]}")
         when (clickEvent) {
             FlipCameraClickEvent -> {
                 val cameraFacing = cameraFacingSelected.getOther()
@@ -111,6 +112,9 @@ class MediaCaptureViewModel @Inject constructor(
     private val viewStateSubject = PublishSubject.create<ViewState>()
 
     val viewState: Observable<ViewState> = viewStateSubject.hide()
+        .doOnSubscribe { println("JRC viewState SUBSCRIBED") }
+        .doOnDispose { println("JRC viewState DISPOSED") }
+        .doOnEach { println("JRC viewState doOnEach = $it") }
 
     // TODO default this to last used
     // TODO probably should be replaced with subject

@@ -143,13 +143,8 @@ class MediaCaptureActivity : ComponentActivity() {
 
         }.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
 
-    }
-
-    override fun onResume() {
-        super.onResume()
-
         viewModel.viewState.observe(this) {
-
+            println("JRC viewState = $it")
             if (it is MediaCaptureViewModel.Initialized) {
                 if (it.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
                     startRecording()
@@ -537,11 +532,12 @@ class MediaCaptureActivity : ComponentActivity() {
 
 
     private fun startRecording() {
+        println("JRC start recording")
         recording = pendingRecording!!.start(
             ContextCompat.getMainExecutor(this.baseContext),
             createRecordingListener()
         )
-        Log.i(TAG, "JEFFREYCUNNINGHAM: startRecording: recording started, recording hash = ${recording.hashCode()}")
+        println("JRC: startRecording: recording started, recording hash = ${recording.hashCode()}")
     }
 
     private fun stopRecording() {
