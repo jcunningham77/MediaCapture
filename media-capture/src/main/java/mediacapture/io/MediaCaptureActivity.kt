@@ -555,7 +555,7 @@ class MediaCaptureActivity : ComponentActivity() {
     }
 
     private fun ContentResolver.createMediaStoreOptionsForVideo(): MediaStoreOutputOptions {
-        val timestamp = Clock.System.now()
+        val timestamp = System.currentTimeMillis()
         Log.i(TAG, "JEFFREYCUNNINGHAM: createMediaStoreOptionsForVideo: timestamp = $timestamp")
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, "CameraX-VideoCapture $timestamp")

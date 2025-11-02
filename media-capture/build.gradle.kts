@@ -1,11 +1,12 @@
 import java.net.URI
 
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-parcelize")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.parcelize)
     id("maven-publish")
-    id("kotlin-kapt")
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.compose.compiler)
     jacoco
 }
 
@@ -15,7 +16,6 @@ android {
 
     defaultConfig {
         minSdk = 29
-        targetSdk = 33
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         aarMetadata {
             minCompileSdk = 24
@@ -33,15 +33,14 @@ android {
 
         debug {
             enableUnitTestCoverage = true
-            // required for connected tests
-            isTestCoverageEnabled = true
+            enableAndroidTestCoverage = true
         }
+    }
 
-        testOptions {
-            unitTests.isIncludeAndroidResources = true
-            animationsDisabled = true
-        }
-
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        animationsDisabled = true
+        targetSdk = 33
     }
 
     compileOptions {
@@ -54,57 +53,53 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.12"
 }
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
 
-    implementation(platform("androidx.compose:compose-bom:2024.02.02"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.activity:activity-compose")
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.activity.compose)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+    implementation(libs.kotlinx.datetime)
 
     // Not managed by compose-bom
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-    implementation("androidx.compose.material3:material3")
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.material3)
 
     // camera X
-    implementation("androidx.camera:camera-core:1.3.0-alpha07")
-    implementation("androidx.camera:camera-camera2:1.3.0-alpha07")
-    implementation("androidx.camera:camera-lifecycle:1.3.0-alpha07")
-    implementation("androidx.camera:camera-video:1.3.0-alpha07")
-    implementation("androidx.camera:camera-view:1.3.0-alpha07")
-    implementation("androidx.camera:camera-extensions:1.3.0-alpha07")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.extensions)
 
     // RX
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-reactivestreams-ktx:2.6.2")
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
-    implementation("androidx.test.ext:junit-ktx:1.2.1")
-    implementation("androidx.test:rules:1.6.1")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.reactivestreams.ktx)
+    implementation(libs.rxjava)
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.androidx.test.rules)
 
-    testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
-    testImplementation("org.mockito:mockito-inline:3.11.2")
-    testImplementation("junit:junit:4.13")
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.junit)
 
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4-android")
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
-    val daggerVersion = "2.51"
-    implementation("com.google.dagger:dagger:$daggerVersion")
-    kapt("com.google.dagger:dagger-compiler:$daggerVersion")
+    implementation(libs.dagger)
+    kapt(libs.dagger.compiler)
 }
 
 android {
