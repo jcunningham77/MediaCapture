@@ -12,7 +12,7 @@ plugins {
 
 android {
     namespace = "mediacapture.io"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 29
