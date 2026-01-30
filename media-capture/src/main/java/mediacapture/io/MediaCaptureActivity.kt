@@ -73,7 +73,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
 import mediacapture.io.di.DaggerInjector
 import mediacapture.io.livedata.observe
 import mediacapture.io.model.Media
@@ -91,7 +90,7 @@ class MediaCaptureActivity : ComponentActivity() {
     private lateinit var camera: Camera
 
     companion object {
-        const val VIDEO_MAX_LENGTH = 60
+        const val VIDEO_MAX_LENGTH_MS = 60_000
         const val MEDIA_EXTRA = "MEDIA_EXTRA"
         private val TAG = this@Companion::class.java.simpleName
     }
@@ -427,21 +426,25 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             )
             if (viewState is MediaCaptureViewModel.Initialized && viewState.recordingState == MediaCaptureViewModel.RecordingState.RECORDING) {
-                var progress by remember {
-                    mutableFloatStateOf(0f)
-                }
+                var targetProgress by remember { mutableFloatStateOf(0f) }
 
-                LaunchedEffect(key1 = true, block = {
-                    var elapsedSeconds = 0
-                    while (true) {
-                        elapsedSeconds++
-                        progress = elapsedSeconds / VIDEO_MAX_LENGTH.toFloat()
-                        delay(1000)
+                val animatedProgress by animateFloatAsState(
+                    targetValue = targetProgress,
+                    animationSpec = tween(durationMillis = 100, easing = LinearEasing),
+                    label = "progress"
+                )
+
+                LaunchedEffect(key1 = true) {
+                    var elapsedMs = 0
+                    while (elapsedMs < VIDEO_MAX_LENGTH_MS) {
+                        elapsedMs += 100
+                        targetProgress = elapsedMs / VIDEO_MAX_LENGTH_MS.toFloat()
+                        delay(100)
                     }
-                })
+                }
                 CircularProgressIndicator(
                     color = Color.Red, modifier = layoutModifier,
-                    progress = { progress }
+                    progress = { animatedProgress }
                 )
             }
         }
