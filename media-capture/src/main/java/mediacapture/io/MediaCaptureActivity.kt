@@ -30,6 +30,9 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -121,7 +124,10 @@ class MediaCaptureActivity : ComponentActivity() {
                 val permission = entries.key
                 val permissionGranted = entries.value
 
-                Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: permission: $permission status: $permissionGranted")
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: onCreate: permission: $permission status: $permissionGranted"
+                )
                 if (!permissionGranted) {
                     permissionDenied = true
                 }
@@ -131,12 +137,19 @@ class MediaCaptureActivity : ComponentActivity() {
             if (permissionDenied) {
                 Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: user rejected permissions")
                 Toast
-                    .makeText(this, "Sorry, you need to grant Camera and Audio permissions to use this feature", Toast.LENGTH_SHORT)
+                    .makeText(
+                        this,
+                        "Sorry, you need to grant Camera and Audio permissions to use this feature",
+                        Toast.LENGTH_SHORT
+                    )
                     .show()
                 this.finish()
 
             } else {
-                Log.i(TAG, "JEFFREYCUNNINGHAM: onCreate: permissions granted, let's initialize the Camera X")
+                Log.i(
+                    TAG,
+                    "JEFFREYCUNNINGHAM: onCreate: permissions granted, let's initialize the Camera X"
+                )
                 viewModel.permissionsGranted()
             }
 
@@ -183,7 +196,10 @@ class MediaCaptureActivity : ComponentActivity() {
         mutableMediaList: MutableState<List<Media>>,
         activity: ComponentActivity,
     ) {
-        Log.i(TAG, "JEFFREYCUNNINGHAM: ConstraintLayoutContent: mutableViewState = ${mutableViewState.value}")
+        Log.i(
+            TAG,
+            "JEFFREYCUNNINGHAM: ConstraintLayoutContent: mutableViewState = ${mutableViewState.value}"
+        )
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -210,14 +226,15 @@ class MediaCaptureActivity : ComponentActivity() {
                 }
             }
 
-            ElapsedTimeView(layoutModifier = Modifier
-                .constrainAs(elapsedTimeRef) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
+            ElapsedTimeView(
+                layoutModifier = Modifier
+                    .constrainAs(elapsedTimeRef) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
 
-                }
-                .padding(10.dp), mutableViewState)
+                    }
+                    .padding(10.dp), mutableViewState)
 
             FlipCameraButton(
                 Modifier
@@ -272,7 +289,9 @@ class MediaCaptureActivity : ComponentActivity() {
                                         finish()
                                     })
                             }
-                            Box(modifier = Modifier.clickable(onClick = { showDialog.value = true })) {
+                            Box(modifier = Modifier.clickable(onClick = {
+                                showDialog.value = true
+                            })) {
                                 Image(
                                     modifier = Modifier
                                         .padding(horizontal = 2.dp)
@@ -348,7 +367,8 @@ class MediaCaptureActivity : ComponentActivity() {
     ) {
 
         Box(Modifier.fillMaxSize()) {
-            AndroidView(modifier = Modifier.fillMaxSize(),
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
                 factory = { context ->
                     PreviewView(context).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
@@ -464,10 +484,16 @@ class MediaCaptureActivity : ComponentActivity() {
                     Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video Finalize:")
                     if (!event.hasError()) {
                         // update app internal state
-                        Log.i(TAG, "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}")
+                        Log.i(
+                            TAG,
+                            "createRecordingListener: JEFFREYCUNNINGHAM Video capture succeeded: ${event.outputResults.outputUri}"
+                        )
                         viewModel.fetchMostRecentMedia()
                     } else {
-                        Log.i(TAG, "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}")
+                        Log.i(
+                            TAG,
+                            "createRecordingListener Video capture ends with error: 1 JEFFREYCUNNINGHAM ${event.error}"
+                        )
 
                         Log.e(TAG, event.cause?.message, event.cause)
                         recording = null
@@ -546,7 +572,10 @@ class MediaCaptureActivity : ComponentActivity() {
     private fun stopRecording() {
 
         if (recording != null) {
-            Log.i(TAG, "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}")
+            Log.i(
+                TAG,
+                "JEFFREYCUNNINGHAM: stopRecording: about to stop recording = recording hash = ${recording.hashCode()}"
+            )
             recording!!.stop()
         } else {
             Log.i(TAG, "stopRecording:  recording is NULL")
